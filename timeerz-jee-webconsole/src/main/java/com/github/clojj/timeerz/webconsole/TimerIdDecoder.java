@@ -1,3 +1,5 @@
+package com.github.clojj.timeerz.webconsole;
+
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.websocket.DecodeException;

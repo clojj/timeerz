@@ -1,3 +1,5 @@
+package com.github.clojj.timeerz.webconsole;
+
 import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
@@ -18,8 +20,10 @@ public class TimeerzEndpoint {
         try {
             for (Session s : session.getOpenSessions()) {
                 if (s.isOpen()) {
-                    s.getBasicRemote().sendObject("todo.. TimerInfoMessage");
-                }
+                    TimerInfoMessage timerInfoMessage = new TimerInfoMessage();
+                    timerInfoMessage.setTimerId("id1");
+                    timerInfoMessage.setTimerData("data...");
+                    session.getBasicRemote().sendObject(timerInfoMessage);                }
             }
         } catch (IOException | EncodeException e) {
             LOG.warning("onMessage failed: " + e.getMessage());

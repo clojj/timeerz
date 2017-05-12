@@ -1,3 +1,5 @@
+package com.github.clojj.timeerz.webconsole;
+
 public class TimerInfoMessage {
     private String timerId;
     private String timerData;
