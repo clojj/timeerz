@@ -1,8 +1,11 @@
 module Main exposing (..)
 
+import Debug
+
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
+import Http
 import WebSocket
 import Table
 import Json.Decode as Decode exposing(..)
@@ -38,6 +41,7 @@ type alias Model =
   { timerId : String
   , tableState : Table.State
   , timeerz : List TimerInfo
+  , rsError : Maybe Http.Error
   , error : String
   , data : String
   }
@@ -48,21 +52,30 @@ type Msg
   | NewMessage String
   | UpdateMessage String
   | SetTableState Table.State
+  | LoadTimeerz (Result Http.Error String)
 
 
 init : (Model, Cmd Msg)
 init =
-  (Model "" (Table.initialSort "Timer-ID") [] "" "waiting for update...", Cmd.none)
+  (Model "" (Table.initialSort "Timer-ID") [] Nothing "" "waiting for update...", initialCmd)
 
-timeerzDecoder : Decode.Decoder TimerInfo
-timeerzDecoder =
+timerInfoDecoder : Decode.Decoder TimerInfo
+timerInfoDecoder =
     Decode.map2 TimerInfo
         (Decode.at [ "timerId" ] Decode.string)
         (Decode.at [ "timerData" ] Decode.string)
 
-decodeTimeerz : String -> Result String TimerInfo
-decodeTimeerz str =
-    Decode.decodeString timeerzDecoder str
+decodeTimerInfo : String -> Result String TimerInfo
+decodeTimerInfo str =
+    Decode.decodeString timerInfoDecoder str
+
+timerInfoListDecoder : Decoder (List TimerInfo)
+timerInfoListDecoder =
+    Decode.list timerInfoDecoder
+
+decodeTimerInfoList : String -> Result String (List TimerInfo)
+decodeTimerInfoList str =
+    Decode.decodeString timerInfoListDecoder str
 
 encodeTimerId : TimerId -> Encode.Value
 encodeTimerId { timerId } =
@@ -70,16 +83,29 @@ encodeTimerId { timerId } =
         [ ("timerId", Encode.string timerId)
         ]
 
--- UPDATE
-
 validateTimerId : String -> Bool
 validateTimerId =
   ((<) 0) << String.length
+
+initialCmd : Cmd Msg
+initialCmd =
+  Http.send LoadTimeerz (Http.getString "http://localhost:8080/timeerz-jee-demo-1.0-SNAPSHOT/rs/timeerz/list")
+
+-- UPDATE
+
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
 
   case msg of
+
+    LoadTimeerz (Ok responseStr) ->
+      case decodeTimerInfoList responseStr of
+        Ok timeers -> ({model | timeerz = timeers } , Cmd.none)
+        Err err    -> ({model | error = err}, Cmd.none)
+
+    LoadTimeerz (Err err) ->
+      ( {model | rsError = Just err}, Cmd.none )
 
     InputTimerId timerId ->
         if validateTimerId timerId
@@ -98,7 +124,7 @@ update msg model =
         ({model | data = data}, Cmd.none)
 
     NewMessage message ->
-        case decodeTimeerz message of
+        case decodeTimerInfo message of
             Ok timeer -> ({model | timeerz = timeer :: model.timeerz} , Cmd.none)
             Err err        -> ({model | error = err}, Cmd.none)
 
@@ -123,6 +149,11 @@ invalidInput : Model -> Bool
 invalidInput { timerId, error } =
   error /= "" || timerId == ""
 
+httpError : Maybe Http.Error -> String
+httpError err =
+  case err of
+    Nothing  -> ""
+    Just err -> toString err
 
 view : Model -> Html Msg
 view model =
@@ -145,6 +176,12 @@ view model =
           [ label [] [ text "All active timeerz" ]
           , Table.view config model.tableState model.timeerz ]
           ]
+      ]
+    , Grid.row []
+      [ Grid.col [ Col.xs12, Col.mdAuto ]
+        [ div [ style [ ("color", "red") ], class "small" ]
+          [ text (httpError model.rsError) ]
+        ]
       ]
     , Grid.row []
       [ Grid.col [ Col.xs12, Col.mdAuto ]

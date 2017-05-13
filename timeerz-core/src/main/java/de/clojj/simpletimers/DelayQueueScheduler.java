@@ -94,7 +94,7 @@ public class DelayQueueScheduler {
                     }
                 }
             } catch (InterruptedException e) {
-                LOG.log(Level.SEVERE, "Unexpected interrupt!", e);
+                LOG.log(Level.WARNING, "Timer thread interrupted: ", e);
                 Thread.currentThread().interrupt();
             }
         }

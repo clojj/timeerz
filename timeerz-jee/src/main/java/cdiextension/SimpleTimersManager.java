@@ -1,6 +1,7 @@
 package cdiextension;
 
 import de.clojj.simpletimers.DelayQueueScheduler;
+import de.clojj.simpletimers.TimerObject;
 import de.clojj.simpletimers.TimerObjectCron;
 
 import javax.annotation.Resource;
@@ -18,6 +19,7 @@ import javax.naming.NamingException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 import java.util.logging.Logger;
@@ -91,6 +93,11 @@ public class SimpleTimersManager {
 
             delayQueueScheduler.add(timerObject);
         }
+    }
+
+    public List<TimerObject> listAll() {
+        Map<String, TimerObject> timers = delayQueueScheduler.getTimers();
+        return new ArrayList<>(timers.values());
     }
 
     private void createJob(ScheduledMethod scheduledMethod, TimerObjectCron timerObject) {

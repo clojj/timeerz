@@ -20,9 +20,7 @@ public class TimeerzEndpoint {
         try {
             for (Session s : session.getOpenSessions()) {
                 if (s.isOpen()) {
-                    TimerInfoMessage timerInfoMessage = new TimerInfoMessage();
-                    timerInfoMessage.setTimerId("id1");
-                    timerInfoMessage.setTimerData("data...");
+                    TimerInfoMessage timerInfoMessage = new TimerInfoMessage("id", "data");
                     session.getBasicRemote().sendObject(timerInfoMessage);                }
             }
         } catch (IOException | EncodeException e) {

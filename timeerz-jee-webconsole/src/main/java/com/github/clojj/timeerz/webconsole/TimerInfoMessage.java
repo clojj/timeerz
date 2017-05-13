@@ -4,8 +4,12 @@ public class TimerInfoMessage {
     private String timerId;
     private String timerData;
 
-    public String getTimerId() {
+    public TimerInfoMessage(String timerId, String timerData) {
+        this.timerId = timerId;
+        this.timerData = timerData;
+    }
 
+    public String getTimerId() {
         return timerId;
     }
 
