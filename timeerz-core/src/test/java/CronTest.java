@@ -14,9 +14,8 @@ import org.junit.jupiter.api.Test;
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.Map;
-
-import static utils.Util.caze;
-import static utils.Util.switchType;
+import java.util.Optional;
+import java.util.function.Consumer;
 
 class CronTest {
 
@@ -49,5 +48,14 @@ class CronTest {
                     caze(QuestionMark.class, questionMark -> System.out.println(namePrefix + questionMark.asString()))
             );
         });
+    }
+
+    private static void switchType(Object o, Consumer... consumers) {
+        for (Consumer consumer : consumers)
+            consumer.accept(o);
+    }
+
+    private static <T> Consumer caze(Class<T> cls, Consumer<T> c) {
+        return obj -> Optional.of(obj).filter(cls::isInstance).map(cls::cast).ifPresent(c);
     }
 }

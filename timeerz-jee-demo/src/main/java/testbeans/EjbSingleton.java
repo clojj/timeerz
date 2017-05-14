@@ -1,6 +1,6 @@
 package testbeans;
 
-import cdiextension.SimpleTimer;
+import com.github.utiliteez.timeerz.jee.annotation.SimpleTimer;
 
 import javax.ejb.Singleton;
 
