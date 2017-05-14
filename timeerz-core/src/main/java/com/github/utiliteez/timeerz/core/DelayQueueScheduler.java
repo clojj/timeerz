@@ -1,8 +1,6 @@
 package com.github.utiliteez.timeerz.core;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.DelayQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -40,6 +38,10 @@ public class DelayQueueScheduler {
         return timers;
     }
 
+    public List<TimerObject> getActiveTimers() {
+        return Arrays.asList((TimerObject []) delayQueue.toArray(new TimerObject[delayQueue.size()]));
+    }
+
     public void startWith(Thread thread) {
         this.thread = thread;
         thread.start();
@@ -62,6 +64,10 @@ public class DelayQueueScheduler {
 
     public boolean deactivate(final TimerObject toDeactivate) {
         return delayQueue.remove(toDeactivate);
+    }
+
+    public boolean deactivate(final String timerId) {
+        return delayQueue.remove(timers.get(timerId));
     }
 
     public int size() {

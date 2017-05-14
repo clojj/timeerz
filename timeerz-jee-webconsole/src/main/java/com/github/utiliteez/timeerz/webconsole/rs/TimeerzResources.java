@@ -1,7 +1,7 @@
 package com.github.utiliteez.timeerz.webconsole.rs;
 
 import com.github.utiliteez.timeerz.core.TimerObject;
-import com.github.utiliteez.timeerz.jee.SimpleTimersManager;
+import com.github.utiliteez.timeerz.jee.TimeerzManager;
 import com.github.utiliteez.timeerz.webconsole.model.TimerInfoMessage;
 import org.jetbrains.annotations.NotNull;
 
@@ -19,13 +19,13 @@ import java.util.stream.Collectors;
 public class TimeerzResources {
 
     @Inject
-    private SimpleTimersManager manager;
+    private TimeerzManager timeerzManager;
 
     @GET
     @Path("list")
     @Produces(MediaType.APPLICATION_JSON)
     public List<TimerInfoMessage> list() throws WebApplicationException {
-        return manager.listAll().stream().map(TimeerzResources::convert).collect(Collectors.toCollection(ArrayList::new));
+        return timeerzManager.listAllActive().stream().map(TimeerzResources::convert).collect(Collectors.toCollection(ArrayList::new));
     }
 
     @NotNull

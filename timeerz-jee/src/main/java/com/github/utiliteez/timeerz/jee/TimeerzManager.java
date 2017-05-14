@@ -22,13 +22,12 @@ import javax.naming.NamingException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 import java.util.logging.Logger;
 
 @ApplicationScoped
-public class SimpleTimersManager {
+public class TimeerzManager {
 
     // TODO use message catalog
     private static final Logger LOG = Logger.getLogger("SimpleTimersManager LOG");
@@ -98,9 +97,12 @@ public class SimpleTimersManager {
         }
     }
 
-    public List<TimerObject> listAll() {
-        Map<String, TimerObject> timers = delayQueueScheduler.getTimers();
-        return new ArrayList<>(timers.values());
+    public List<TimerObject> listAllActive() {
+        return delayQueueScheduler.getActiveTimers();
+    }
+
+    public boolean deactivate(String timerId) {
+        return delayQueueScheduler.deactivate(timerId);
     }
 
     private void createJob(ScheduledMethod scheduledMethod, TimerObjectCron timerObject) {

@@ -1,10 +1,12 @@
 package com.github.utiliteez.timeerz.webconsole.websocket;
 
+import com.github.utiliteez.timeerz.jee.TimeerzManager;
 import com.github.utiliteez.timeerz.webconsole.model.TimerIdDecoder;
 import com.github.utiliteez.timeerz.webconsole.model.TimerIdMessage;
 import com.github.utiliteez.timeerz.webconsole.model.TimerInfoEncoder;
 import com.github.utiliteez.timeerz.webconsole.model.TimerInfoMessage;
 
+import javax.inject.Inject;
 import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
@@ -14,6 +16,9 @@ import java.util.logging.Logger;
 public class TimeerzEndpoint {
 
     private static final Logger LOG = Logger.getLogger("TimeerzEndpoint LOG");
+
+    @Inject
+    private TimeerzManager timeerzManager;
 
     @OnOpen
     public void open(final Session session) {
@@ -25,8 +30,12 @@ public class TimeerzEndpoint {
         try {
             for (Session s : session.getOpenSessions()) {
                 if (s.isOpen()) {
+                    boolean deactivated = timeerzManager.deactivate(timerIdMessage.getTimerId());
+
+                    // TODO send updated list
                     TimerInfoMessage timerInfoMessage = new TimerInfoMessage("id", "data");
-                    session.getBasicRemote().sendObject(timerInfoMessage);                }
+                    session.getBasicRemote().sendObject(timerInfoMessage);
+                }
             }
         } catch (IOException | EncodeException e) {
             LOG.warning("onMessage failed: " + e.getMessage());

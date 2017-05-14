@@ -1,6 +1,6 @@
 package testbeans;
 
-import com.github.utiliteez.timeerz.jee.annotation.SimpleTimer;
+import com.github.utiliteez.timeerz.jee.annotation.Timeer;
 
 import javax.ejb.Singleton;
 
@@ -12,7 +12,7 @@ public class EjbSingleton {
     EjbTxNever ejbTxNever;
     */
 
-    @SimpleTimer(value = "0/1 * * * * ?")
+    @Timeer(value = "0/1 * * * * ?")
     public void singletonMethod() {
         // ejbTxNever.ejbTxNever(); // test if timer-triggered call is transactional !
 

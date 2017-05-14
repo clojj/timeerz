@@ -4,8 +4,8 @@ import com.cronutils.model.Cron;
 import com.cronutils.model.CronType;
 import com.cronutils.model.definition.CronDefinitionBuilder;
 import com.cronutils.parser.CronParser;
-import com.github.utiliteez.timeerz.jee.SimpleTimersManager;
-import com.github.utiliteez.timeerz.jee.annotation.SimpleTimer;
+import com.github.utiliteez.timeerz.jee.TimeerzManager;
+import com.github.utiliteez.timeerz.jee.annotation.Timeer;
 import com.github.utiliteez.timeerz.jee.model.ScheduledMethod;
 
 import javax.ejb.Singleton;
@@ -19,7 +19,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class SimpleTimersExtension<R> implements Extension {
+public class TimeerzExtension<R> implements Extension {
 
     private static final Set<Class<? extends Annotation>> EJB_ANNOTATIONS = new HashSet<>();
     static {
@@ -33,11 +33,11 @@ public class SimpleTimersExtension<R> implements Extension {
 
     private CronParser parser = new CronParser(CronDefinitionBuilder.instanceDefinitionFor(CronType.QUARTZ));
 
-    public void addTimers(@Observes @WithAnnotations({SimpleTimer.class}) ProcessAnnotatedType<R> pat, BeanManager beanManager) {
+    public void addTimers(@Observes @WithAnnotations({Timeer.class}) ProcessAnnotatedType<R> pat, BeanManager beanManager) {
         this.beanManager = beanManager;
         AnnotatedType<R> at = pat.getAnnotatedType();
         for (AnnotatedMethod<? super R> method : at.getMethods()) {
-            SimpleTimer annotation = method.getAnnotation(SimpleTimer.class);
+            Timeer annotation = method.getAnnotation(Timeer.class);
             if (annotation != null) {
                 BeanType type = EJB_ANNOTATIONS.stream().anyMatch(at::isAnnotationPresent) ? BeanType.EJB : BeanType.CDI;
                 Class<?> clazz = method.getJavaMember().getDeclaringClass();
@@ -51,10 +51,10 @@ public class SimpleTimersExtension<R> implements Extension {
 
     public void afterDeploymentValidation(@Observes AfterDeploymentValidation afterDeploymentValidation) {
         // move list of beans to SimpleTimersInit
-        Set<Bean<?>> beans = beanManager.getBeans(SimpleTimersManager.class);
+        Set<Bean<?>> beans = beanManager.getBeans(TimeerzManager.class);
         final Bean<?> appInitBean = beanManager.resolve(beans);
         CreationalContext<?> creationalContext = beanManager.createCreationalContext(appInitBean);
-        Object instance = beanManager.getReference(appInitBean, SimpleTimersManager.class, creationalContext);
-        ((SimpleTimersManager) instance).getScheduledMethods().addAll(scheduledMethods);
+        Object instance = beanManager.getReference(appInitBean, TimeerzManager.class, creationalContext);
+        ((TimeerzManager) instance).getScheduledMethods().addAll(scheduledMethods);
     }
 }
