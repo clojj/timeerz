@@ -1,14 +1,14 @@
 package com.github.utiliteez.timeerz.core;
 
-import com.cronutils.model.Cron;
-import com.cronutils.model.field.expression.Every;
-import com.cronutils.model.time.ExecutionTime;
-
 import java.time.ZonedDateTime;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+
+import com.cronutils.model.Cron;
+import com.cronutils.model.field.expression.Every;
+import com.cronutils.model.time.ExecutionTime;
 
 public class TimerObjectCron implements TimerObject {
 
@@ -20,12 +20,15 @@ public class TimerObjectCron implements TimerObject {
     private Consumer<Long> consumer;
     private CompletableFuture<Object> completableFuture;
 
-    public TimerObjectCron(String id, Cron cron, Consumer<Long> consumer) {
+	private boolean active;
+
+	public TimerObjectCron(String id, Cron cron, Consumer<Long> consumer) {
         this.id = id;
         this.cron = cron;
         this.startTime = ExecutionTime.forCron(cron).nextExecution(ZonedDateTime.now()).toInstant().toEpochMilli();
         this.repeat = cron.retrieveFieldsAsMap().values().stream().anyMatch(cronField -> cronField.getExpression() instanceof Every);
         this.consumer = consumer;
+        this.active = true;
     }
 
     public TimerObjectCron(String id, Cron cron) {
@@ -85,7 +88,16 @@ public class TimerObjectCron implements TimerObject {
         return repeat;
     }
 
-    public long getStartTime() {
+	@Override
+	public synchronized boolean isActive() {
+		return active;
+	}
+
+	public synchronized void deactivate() {
+		this.active = false;
+	}
+
+	public long getStartTime() {
         return startTime;
     }
 

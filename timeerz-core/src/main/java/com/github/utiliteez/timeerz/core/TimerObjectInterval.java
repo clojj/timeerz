@@ -10,8 +10,9 @@ public class TimerObjectInterval implements TimerObject {
     private long startTime;
     private final boolean repeat;
     private final Consumer<Long> consumer;
+	private boolean active;
 
-    public TimerObjectInterval(long interval, TimeUnit timeUnit, boolean repeat, Consumer<Long> consumer) {
+	public TimerObjectInterval(long interval, TimeUnit timeUnit, boolean repeat, Consumer<Long> consumer) {
         this.interval = interval;
         this.timeUnit = timeUnit;
         this.startTime = currentTime(timeUnit) + this.interval;
@@ -53,7 +54,17 @@ public class TimerObjectInterval implements TimerObject {
         return repeat;
     }
 
-    private long currentTime(TimeUnit timeUnit) {
+	@Override
+	public synchronized boolean isActive() {
+		return active;
+	}
+
+	@Override
+	public synchronized void deactivate() {
+		this.active = false;
+	}
+
+	private long currentTime(TimeUnit timeUnit) {
         // these units are not possible in Quartz cron.. so they are provided in TimerObjectInterval !
         switch (timeUnit) {
             case NANOSECONDS:

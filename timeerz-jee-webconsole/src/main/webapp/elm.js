@@ -11703,24 +11703,29 @@ var _clojj$timeerz$Main$invalidInput = function (_p1) {
 	var _p2 = _p1;
 	return (!_elm_lang$core$Native_Utils.eq(_p2.error, '')) || _elm_lang$core$Native_Utils.eq(_p2.timerId, '');
 };
-var _clojj$timeerz$Main$validateTimerId = function (_p3) {
-	return A2(
-		F2(
-			function (x, y) {
-				return _elm_lang$core$Native_Utils.cmp(x, y) < 0;
-			}),
-		0,
-		_elm_lang$core$String$length(_p3));
-};
-var _clojj$timeerz$Main$encodeTimerId = function (_p4) {
-	var _p5 = _p4;
+var _clojj$timeerz$Main$validateTimerId = F2(
+	function (model, id) {
+		return (_elm_lang$core$Native_Utils.cmp(
+			_elm_lang$core$String$length(id),
+			0) > 0) && A2(
+			_elm_lang$core$List$member,
+			id,
+			A2(
+				_elm_lang$core$List$map,
+				function (_) {
+					return _.timerId;
+				},
+				model.timeerz));
+	});
+var _clojj$timeerz$Main$encodeTimerId = function (_p3) {
+	var _p4 = _p3;
 	return _elm_lang$core$Json_Encode$object(
 		{
 			ctor: '::',
 			_0: {
 				ctor: '_Tuple2',
 				_0: 'timerId',
-				_1: _elm_lang$core$Json_Encode$string(_p5.timerId)
+				_1: _elm_lang$core$Json_Encode$string(_p4.timerId)
 			},
 			_1: {ctor: '[]'}
 		});
@@ -11760,17 +11765,17 @@ var _clojj$timeerz$Main$TimerId = function (a) {
 };
 var _clojj$timeerz$Main$update = F2(
 	function (msg, model) {
-		var _p6 = msg;
-		switch (_p6.ctor) {
+		var _p5 = msg;
+		switch (_p5.ctor) {
 			case 'LoadTimeerz':
-				if (_p6._0.ctor === 'Ok') {
-					var _p7 = _clojj$timeerz$Main$decodeTimerInfoList(_p6._0._0);
-					if (_p7.ctor === 'Ok') {
+				if (_p5._0.ctor === 'Ok') {
+					var _p6 = _clojj$timeerz$Main$decodeTimerInfoList(_p5._0._0);
+					if (_p6.ctor === 'Ok') {
 						return {
 							ctor: '_Tuple2',
 							_0: _elm_lang$core$Native_Utils.update(
 								model,
-								{timeerz: _p7._0}),
+								{timeerz: _p6._0}),
 							_1: _elm_lang$core$Platform_Cmd$none
 						};
 					} else {
@@ -11778,7 +11783,7 @@ var _clojj$timeerz$Main$update = F2(
 							ctor: '_Tuple2',
 							_0: _elm_lang$core$Native_Utils.update(
 								model,
-								{error: _p7._0}),
+								{error: _p6._0}),
 							_1: _elm_lang$core$Platform_Cmd$none
 						};
 					}
@@ -11788,25 +11793,25 @@ var _clojj$timeerz$Main$update = F2(
 						_0: _elm_lang$core$Native_Utils.update(
 							model,
 							{
-								rsError: _elm_lang$core$Maybe$Just(_p6._0._0)
+								rsError: _elm_lang$core$Maybe$Just(_p5._0._0)
 							}),
 						_1: _elm_lang$core$Platform_Cmd$none
 					};
 				}
 			case 'InputTimerId':
-				var _p9 = _p6._0;
-				if (_clojj$timeerz$Main$validateTimerId(_p9)) {
+				var _p8 = _p5._0;
+				if (A2(_clojj$timeerz$Main$validateTimerId, model, _p8)) {
 					return {
 						ctor: '_Tuple2',
 						_0: _elm_lang$core$Native_Utils.update(
 							model,
-							{timerId: _p9, error: ''}),
+							{timerId: _p8, error: ''}),
 						_1: _elm_lang$core$Platform_Cmd$none
 					};
 				} else {
 					var errMsg = function () {
-						var _p8 = _p9;
-						if (_p8 === '') {
+						var _p7 = _p8;
+						if (_p7 === '') {
 							return '';
 						} else {
 							return 'invalid ID';
@@ -11816,7 +11821,7 @@ var _clojj$timeerz$Main$update = F2(
 						ctor: '_Tuple2',
 						_0: _elm_lang$core$Native_Utils.update(
 							model,
-							{timerId: _p9, error: errMsg}),
+							{timerId: _p8, error: errMsg}),
 						_1: _elm_lang$core$Platform_Cmd$none
 					};
 				}
@@ -11838,18 +11843,18 @@ var _clojj$timeerz$Main$update = F2(
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
 						model,
-						{data: _p6._0}),
+						{data: _p5._0}),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
 			case 'NewMessage':
-				var _p10 = _clojj$timeerz$Main$decodeTimerInfo(_p6._0);
-				if (_p10.ctor === 'Ok') {
+				var _p9 = _clojj$timeerz$Main$decodeTimerInfo(_p5._0);
+				if (_p9.ctor === 'Ok') {
 					return {
 						ctor: '_Tuple2',
 						_0: _elm_lang$core$Native_Utils.update(
 							model,
 							{
-								timeerz: {ctor: '::', _0: _p10._0, _1: model.timeerz}
+								timeerz: {ctor: '::', _0: _p9._0, _1: model.timeerz}
 							}),
 						_1: _elm_lang$core$Platform_Cmd$none
 					};
@@ -11858,7 +11863,7 @@ var _clojj$timeerz$Main$update = F2(
 						ctor: '_Tuple2',
 						_0: _elm_lang$core$Native_Utils.update(
 							model,
-							{error: _p10._0}),
+							{error: _p9._0}),
 						_1: _elm_lang$core$Platform_Cmd$none
 					};
 				}
@@ -11867,7 +11872,7 @@ var _clojj$timeerz$Main$update = F2(
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
 						model,
-						{tableState: _p6._0}),
+						{tableState: _p5._0}),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
 		}

@@ -83,9 +83,9 @@ encodeTimerId { timerId } =
         [ ("timerId", Encode.string timerId)
         ]
 
-validateTimerId : String -> Bool
-validateTimerId =
-  ((<) 0) << String.length
+validateTimerId : Model -> String -> Bool
+validateTimerId model id =
+  (String.length id > 0) &&  List.member id (List.map .timerId model.timeerz)
 
 initialCmd : Cmd Msg
 initialCmd =
@@ -108,7 +108,7 @@ update msg model =
       ( {model | rsError = Just err}, Cmd.none )
 
     InputTimerId timerId ->
-        if validateTimerId timerId
+        if validateTimerId model timerId
         then ({model | timerId = timerId, error = ""}, Cmd.none)
         else
           let errMsg = case timerId of
