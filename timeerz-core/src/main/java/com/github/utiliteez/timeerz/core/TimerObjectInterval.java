@@ -60,11 +60,12 @@ public class TimerObjectInterval implements TimerObject {
 	}
 
 	@Override
-	public synchronized void deactivate() {
-		this.active = false;
+	public synchronized boolean toggleActivation() {
+        this.active = !this.active;
+        return this.active;
 	}
 
-	private long currentTime(TimeUnit timeUnit) {
+    private long currentTime(TimeUnit timeUnit) {
         // these units are not possible in Quartz cron.. so they are provided in TimerObjectInterval !
         switch (timeUnit) {
             case NANOSECONDS:

@@ -7,7 +7,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Http
 import WebSocket
-import Table
+import Table exposing (defaultCustomizations)
 import Json.Decode as Decode exposing(..)
 import Json.Encode as Encode exposing(..)
 import Basics
@@ -28,19 +28,28 @@ main =
 
 -- MODEL
 
-type alias TimerInfo =
+type alias TimerData =
   { timerId : String
-  , timerData : String
+  , active : Bool
+  , cronExpression : String
   }
 
-type alias TimerId =
+type alias TimerCommands = List TimerCommand
+
+type alias TimerCommand =
   { timerId : String
+  , timerOp : TimerOp
   }
+
+type TimerOp
+  = ToggleActivation
+  | Reconfigure String
 
 type alias Model =
   { timerId : String
   , tableState : Table.State
-  , timeerz : List TimerInfo
+  , timeerz : List TimerData
+  , toggled : List String
   , rsError : Maybe Http.Error
   , error : String
   , data : String
@@ -48,6 +57,7 @@ type alias Model =
 
 type Msg
   = InputTimerId String
+  | ToggleSelected String
   | Send
   | NewMessage String
   | UpdateMessage String
@@ -57,30 +67,36 @@ type Msg
 
 init : (Model, Cmd Msg)
 init =
-  (Model "" (Table.initialSort "Timer-ID") [] Nothing "" "waiting for update...", initialCmd)
+  (Model "" (Table.initialSort "Timer-ID") [] [] Nothing "" "waiting for update...", initialCmd)
 
-timerInfoDecoder : Decode.Decoder TimerInfo
-timerInfoDecoder =
-    Decode.map2 TimerInfo
+timerDataDecoder : Decode.Decoder TimerData
+timerDataDecoder =
+    Decode.map3 TimerData
         (Decode.at [ "timerId" ] Decode.string)
-        (Decode.at [ "timerData" ] Decode.string)
+        (Decode.at [ "active" ] Decode.bool)
+        (Decode.at [ "cronExpression" ] Decode.string)
 
-decodeTimerInfo : String -> Result String TimerInfo
-decodeTimerInfo str =
-    Decode.decodeString timerInfoDecoder str
+decodeTimerData : String -> Result String TimerData
+decodeTimerData str =
+    Decode.decodeString timerDataDecoder str
 
-timerInfoListDecoder : Decoder (List TimerInfo)
-timerInfoListDecoder =
-    Decode.list timerInfoDecoder
+timerDataListDecoder : Decoder (List TimerData)
+timerDataListDecoder =
+    Decode.list timerDataDecoder
 
-decodeTimerInfoList : String -> Result String (List TimerInfo)
-decodeTimerInfoList str =
-    Decode.decodeString timerInfoListDecoder str
+decodeTimerDataList : String -> Result String (List TimerData)
+decodeTimerDataList str =
+    Decode.decodeString timerDataListDecoder str
 
-encodeTimerId : TimerId -> Encode.Value
-encodeTimerId { timerId } =
+encodeTimerCommands : List TimerCommand -> Encode.Value
+encodeTimerCommands =
+  List.map encodeTimerCommand >> Encode.list
+
+encodeTimerCommand : TimerCommand -> Encode.Value
+encodeTimerCommand { timerId, timerOp } =
     Encode.object
         [ ("timerId", Encode.string timerId)
+        , ("timerOp", Encode.string (toString timerOp))
         ]
 
 validateTimerId : Model -> String -> Bool
@@ -99,8 +115,18 @@ update msg model =
 
   case msg of
 
+    ToggleSelected id ->
+      let newTimeerz = List.map (toggle id) model.timeerz
+          newToggled = if (List.member id model.toggled) then model.toggled else (id :: model.toggled)
+      in
+        ( { model | timeerz = newTimeerz , toggled = newToggled } , Cmd.none )
+
+    Send ->
+        let commands = encodeTimerCommands (List.map createTimerCommandToggled model.toggled)
+        in ({model | timerId = "", toggled = []}, WebSocket.send "ws://localhost:8080/timeerz-jee-demo-1.0-SNAPSHOT/timeerz" (Encode.encode 1 commands))
+
     LoadTimeerz (Ok responseStr) ->
-      case decodeTimerInfoList responseStr of
+      case decodeTimerDataList responseStr of
         Ok timeers -> ({model | timeerz = timeers } , Cmd.none)
         Err err    -> ({model | error = err}, Cmd.none)
 
@@ -116,21 +142,34 @@ update msg model =
                           _  -> "invalid ID"
           in ({model | timerId = timerId, error = errMsg}, Cmd.none)
 
-    Send ->
-        let res = encodeTimerId (TimerId model.timerId)
-        in ({model | timerId = ""}, WebSocket.send "ws://localhost:8080/timeerz-jee-demo-1.0-SNAPSHOT/timeerz" (Encode.encode 1 res))
-
     UpdateMessage data ->
         ({model | data = data}, Cmd.none)
 
     NewMessage message ->
-        case decodeTimerInfo message of
+        case decodeTimerData message of
             Ok timeer -> ({model | timeerz = timeer :: model.timeerz} , Cmd.none)
             Err err        -> ({model | error = err}, Cmd.none)
 
     SetTableState newState ->
       ( {model | tableState = newState}, Cmd.none )
 
+createTimerCommandToggled : String -> TimerCommand
+createTimerCommandToggled timerId =
+  (TimerCommand timerId ToggleActivation)
+
+toggle : String -> TimerData -> TimerData
+toggle id timerData =
+  if timerData.timerId == id then
+    { timerData | active = not timerData.active }
+  else
+    timerData
+
+toggleFilter : String -> TimerData -> Bool
+toggleFilter id timerData =
+  if timerData.timerId == id then
+    True
+  else
+    False
 
 -- SUBSCRIPTIONS
 
@@ -179,6 +218,11 @@ view model =
       ]
     , Grid.row []
       [ Grid.col [ Col.xs12, Col.mdAuto ]
+        [ button [onClick Send] [text "Send"]
+        ]
+      ]
+    , Grid.row []
+      [ Grid.col [ Col.xs12, Col.mdAuto ]
         [ div [ style [ ("color", "red") ], class "small" ]
           [ text (httpError model.rsError) ]
         ]
@@ -191,13 +235,36 @@ view model =
       ]
     ]
 
-config : Table.Config TimerInfo Msg
+config : Table.Config TimerData Msg
 config =
-  Table.config
+  Table.customConfig
     { toId = .timerId
     , toMsg = SetTableState
     , columns =
-        [ Table.stringColumn "Timer-ID" .timerId
-        , Table.stringColumn "Data" .timerData
-        ]
+      [ Table.stringColumn "Timer-ID" .timerId
+      , checkboxColumn
+--      TODO cron column
+      ]
+    , customizations =
+      { defaultCustomizations | rowAttrs = toRowAttrs }
     }
+
+toRowAttrs : TimerData -> List (Attribute Msg)
+toRowAttrs timerData =
+  [ onClick (ToggleSelected timerData.timerId)
+  , style [ ("background", if timerData.active then "#CEFAF8" else "white") ]
+  ]
+
+checkboxColumn : Table.Column TimerData Msg
+checkboxColumn =
+  Table.veryCustomColumn
+    { name = "Active"
+    , viewData = viewCheckbox
+    , sorter = Table.unsortable
+    }
+
+viewCheckbox : TimerData -> Table.HtmlDetails Msg
+viewCheckbox { active } =
+  Table.HtmlDetails []
+    [ input [ type_ "checkbox", checked active ] []
+    ]

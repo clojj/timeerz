@@ -1,10 +1,6 @@
 package com.github.utiliteez.timeerz.core;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.DelayQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -36,14 +32,16 @@ public class DelayQueueScheduler {
 		return delayQueue.add(timerObject);
 	}
 
-	// todo: remove( timerId ), reconfigure( timerId, cronExpression )
+	// todo: add( timerId), remove( timerId ), reconfigure( timerId, cronExpression )
 
 	public Map<String, TimerObject> getTimers() {
 		return timers;
 	}
 
-	public List<TimerObject> getActiveTimers() {
-		return Arrays.asList((TimerObject[]) delayQueue.toArray(new TimerObject[delayQueue.size()]));
+	public List<TimerObject> allTimers() {
+		ArrayList<TimerObject> timerObjects = new ArrayList<>(timers.values());
+		timerObjects.sort(Comparator.comparing(TimerObject::getId));
+		return timerObjects;
 	}
 
 	public void startWith(Thread thread) {
@@ -66,14 +64,14 @@ public class DelayQueueScheduler {
 		}
 	}
 
-	public boolean deactivate(final TimerObject toDeactivate) {
+	public boolean toggleActivation(final TimerObject toDeactivate) {
 		return delayQueue.remove(toDeactivate);
 	}
 
-	public boolean deactivate(final String timerId) {
+	public boolean toggleActivation(final String timerId) {
 		TimerObject timerObject = timers.get(timerId);
-		timerObject.deactivate();
-		return delayQueue.remove(timerObject);
+		boolean activation = timerObject.toggleActivation();
+		return activation ? delayQueue.add(timerObject) : delayQueue.remove(timerObject);
 	}
 
 	public int size() {

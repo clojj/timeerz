@@ -68,7 +68,7 @@ class DelayQueueSchedulerTest {
         delayQueueScheduler.debugPrint();
         assertEquals(4, consumed);
 
-        boolean deactivated = delayQueueScheduler.deactivate(timerObjectToDeactivate);
+        boolean deactivated = delayQueueScheduler.toggleActivation(timerObjectToDeactivate);
         assertTrue(deactivated);
         delayQueueScheduler.debugPrint();
 

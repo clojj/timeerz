@@ -1,14 +1,14 @@
 package com.github.utiliteez.timeerz.core;
 
+import com.cronutils.model.Cron;
+import com.cronutils.model.field.expression.Every;
+import com.cronutils.model.time.ExecutionTime;
+
 import java.time.ZonedDateTime;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
-
-import com.cronutils.model.Cron;
-import com.cronutils.model.field.expression.Every;
-import com.cronutils.model.time.ExecutionTime;
 
 public class TimerObjectCron implements TimerObject {
 
@@ -93,8 +93,9 @@ public class TimerObjectCron implements TimerObject {
 		return active;
 	}
 
-	public synchronized void deactivate() {
-		this.active = false;
+	public synchronized boolean toggleActivation() {
+		this.active = !this.active;
+		return this.active;
 	}
 
 	public long getStartTime() {

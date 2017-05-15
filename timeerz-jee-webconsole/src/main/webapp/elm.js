@@ -11691,18 +11691,52 @@ var _rundis$elm_bootstrap$Bootstrap_Grid$col = F2(
 			{options: options, children: children});
 	});
 
+var _clojj$timeerz$Main$viewCheckbox = function (_p0) {
+	var _p1 = _p0;
+	return A2(
+		_evancz$elm_sortable_table$Table$HtmlDetails,
+		{ctor: '[]'},
+		{
+			ctor: '::',
+			_0: A2(
+				_elm_lang$html$Html$input,
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$type_('checkbox'),
+					_1: {
+						ctor: '::',
+						_0: _elm_lang$html$Html_Attributes$checked(_p1.active),
+						_1: {ctor: '[]'}
+					}
+				},
+				{ctor: '[]'}),
+			_1: {ctor: '[]'}
+		});
+};
+var _clojj$timeerz$Main$checkboxColumn = _evancz$elm_sortable_table$Table$veryCustomColumn(
+	{name: 'Active', viewData: _clojj$timeerz$Main$viewCheckbox, sorter: _evancz$elm_sortable_table$Table$unsortable});
 var _clojj$timeerz$Main$httpError = function (err) {
-	var _p0 = err;
-	if (_p0.ctor === 'Nothing') {
+	var _p2 = err;
+	if (_p2.ctor === 'Nothing') {
 		return '';
 	} else {
-		return _elm_lang$core$Basics$toString(_p0._0);
+		return _elm_lang$core$Basics$toString(_p2._0);
 	}
 };
-var _clojj$timeerz$Main$invalidInput = function (_p1) {
-	var _p2 = _p1;
-	return (!_elm_lang$core$Native_Utils.eq(_p2.error, '')) || _elm_lang$core$Native_Utils.eq(_p2.timerId, '');
+var _clojj$timeerz$Main$invalidInput = function (_p3) {
+	var _p4 = _p3;
+	return (!_elm_lang$core$Native_Utils.eq(_p4.error, '')) || _elm_lang$core$Native_Utils.eq(_p4.timerId, '');
 };
+var _clojj$timeerz$Main$toggleFilter = F2(
+	function (id, timerData) {
+		return _elm_lang$core$Native_Utils.eq(timerData.timerId, id) ? true : false;
+	});
+var _clojj$timeerz$Main$toggle = F2(
+	function (id, timerData) {
+		return _elm_lang$core$Native_Utils.eq(timerData.timerId, id) ? _elm_lang$core$Native_Utils.update(
+			timerData,
+			{active: !timerData.active}) : timerData;
+	});
 var _clojj$timeerz$Main$validateTimerId = F2(
 	function (model, id) {
 		return (_elm_lang$core$Native_Utils.cmp(
@@ -11717,26 +11751,39 @@ var _clojj$timeerz$Main$validateTimerId = F2(
 				},
 				model.timeerz));
 	});
-var _clojj$timeerz$Main$encodeTimerId = function (_p3) {
-	var _p4 = _p3;
+var _clojj$timeerz$Main$encodeTimerCommand = function (_p5) {
+	var _p6 = _p5;
 	return _elm_lang$core$Json_Encode$object(
 		{
 			ctor: '::',
 			_0: {
 				ctor: '_Tuple2',
 				_0: 'timerId',
-				_1: _elm_lang$core$Json_Encode$string(_p4.timerId)
+				_1: _elm_lang$core$Json_Encode$string(_p6.timerId)
 			},
-			_1: {ctor: '[]'}
+			_1: {
+				ctor: '::',
+				_0: {
+					ctor: '_Tuple2',
+					_0: 'timerOp',
+					_1: _elm_lang$core$Json_Encode$string(
+						_elm_lang$core$Basics$toString(_p6.timerOp))
+				},
+				_1: {ctor: '[]'}
+			}
 		});
 };
-var _clojj$timeerz$Main$TimerInfo = F2(
-	function (a, b) {
-		return {timerId: a, timerData: b};
+var _clojj$timeerz$Main$encodeTimerCommands = function (_p7) {
+	return _elm_lang$core$Json_Encode$list(
+		A2(_elm_lang$core$List$map, _clojj$timeerz$Main$encodeTimerCommand, _p7));
+};
+var _clojj$timeerz$Main$TimerData = F3(
+	function (a, b, c) {
+		return {timerId: a, active: b, cronExpression: c};
 	});
-var _clojj$timeerz$Main$timerInfoDecoder = A3(
-	_elm_lang$core$Json_Decode$map2,
-	_clojj$timeerz$Main$TimerInfo,
+var _clojj$timeerz$Main$timerDataDecoder = A4(
+	_elm_lang$core$Json_Decode$map3,
+	_clojj$timeerz$Main$TimerData,
 	A2(
 		_elm_lang$core$Json_Decode$at,
 		{
@@ -11749,33 +11796,83 @@ var _clojj$timeerz$Main$timerInfoDecoder = A3(
 		_elm_lang$core$Json_Decode$at,
 		{
 			ctor: '::',
-			_0: 'timerData',
+			_0: 'active',
+			_1: {ctor: '[]'}
+		},
+		_elm_lang$core$Json_Decode$bool),
+	A2(
+		_elm_lang$core$Json_Decode$at,
+		{
+			ctor: '::',
+			_0: 'cronExpression',
 			_1: {ctor: '[]'}
 		},
 		_elm_lang$core$Json_Decode$string));
-var _clojj$timeerz$Main$decodeTimerInfo = function (str) {
-	return A2(_elm_lang$core$Json_Decode$decodeString, _clojj$timeerz$Main$timerInfoDecoder, str);
+var _clojj$timeerz$Main$decodeTimerData = function (str) {
+	return A2(_elm_lang$core$Json_Decode$decodeString, _clojj$timeerz$Main$timerDataDecoder, str);
 };
-var _clojj$timeerz$Main$timerInfoListDecoder = _elm_lang$core$Json_Decode$list(_clojj$timeerz$Main$timerInfoDecoder);
-var _clojj$timeerz$Main$decodeTimerInfoList = function (str) {
-	return A2(_elm_lang$core$Json_Decode$decodeString, _clojj$timeerz$Main$timerInfoListDecoder, str);
+var _clojj$timeerz$Main$timerDataListDecoder = _elm_lang$core$Json_Decode$list(_clojj$timeerz$Main$timerDataDecoder);
+var _clojj$timeerz$Main$decodeTimerDataList = function (str) {
+	return A2(_elm_lang$core$Json_Decode$decodeString, _clojj$timeerz$Main$timerDataListDecoder, str);
 };
-var _clojj$timeerz$Main$TimerId = function (a) {
-	return {timerId: a};
+var _clojj$timeerz$Main$TimerCommand = F2(
+	function (a, b) {
+		return {timerId: a, timerOp: b};
+	});
+var _clojj$timeerz$Main$Model = F7(
+	function (a, b, c, d, e, f, g) {
+		return {timerId: a, tableState: b, timeerz: c, toggled: d, rsError: e, error: f, data: g};
+	});
+var _clojj$timeerz$Main$Reconfigure = function (a) {
+	return {ctor: 'Reconfigure', _0: a};
+};
+var _clojj$timeerz$Main$ToggleActivation = {ctor: 'ToggleActivation'};
+var _clojj$timeerz$Main$createTimerCommandToggled = function (timerId) {
+	return A2(_clojj$timeerz$Main$TimerCommand, timerId, _clojj$timeerz$Main$ToggleActivation);
 };
 var _clojj$timeerz$Main$update = F2(
 	function (msg, model) {
-		var _p5 = msg;
-		switch (_p5.ctor) {
+		var _p8 = msg;
+		switch (_p8.ctor) {
+			case 'ToggleSelected':
+				var _p9 = _p8._0;
+				var newToggled = A2(_elm_lang$core$List$member, _p9, model.toggled) ? model.toggled : {ctor: '::', _0: _p9, _1: model.toggled};
+				var newTimeerz = A2(
+					_elm_lang$core$List$map,
+					_clojj$timeerz$Main$toggle(_p9),
+					model.timeerz);
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{timeerz: newTimeerz, toggled: newToggled}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'Send':
+				var commands = _clojj$timeerz$Main$encodeTimerCommands(
+					A2(_elm_lang$core$List$map, _clojj$timeerz$Main$createTimerCommandToggled, model.toggled));
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{
+							timerId: '',
+							toggled: {ctor: '[]'}
+						}),
+					_1: A2(
+						_elm_lang$websocket$WebSocket$send,
+						'ws://localhost:8080/timeerz-jee-demo-1.0-SNAPSHOT/timeerz',
+						A2(_elm_lang$core$Json_Encode$encode, 1, commands))
+				};
 			case 'LoadTimeerz':
-				if (_p5._0.ctor === 'Ok') {
-					var _p6 = _clojj$timeerz$Main$decodeTimerInfoList(_p5._0._0);
-					if (_p6.ctor === 'Ok') {
+				if (_p8._0.ctor === 'Ok') {
+					var _p10 = _clojj$timeerz$Main$decodeTimerDataList(_p8._0._0);
+					if (_p10.ctor === 'Ok') {
 						return {
 							ctor: '_Tuple2',
 							_0: _elm_lang$core$Native_Utils.update(
 								model,
-								{timeerz: _p6._0}),
+								{timeerz: _p10._0}),
 							_1: _elm_lang$core$Platform_Cmd$none
 						};
 					} else {
@@ -11783,7 +11880,7 @@ var _clojj$timeerz$Main$update = F2(
 							ctor: '_Tuple2',
 							_0: _elm_lang$core$Native_Utils.update(
 								model,
-								{error: _p6._0}),
+								{error: _p10._0}),
 							_1: _elm_lang$core$Platform_Cmd$none
 						};
 					}
@@ -11793,25 +11890,25 @@ var _clojj$timeerz$Main$update = F2(
 						_0: _elm_lang$core$Native_Utils.update(
 							model,
 							{
-								rsError: _elm_lang$core$Maybe$Just(_p5._0._0)
+								rsError: _elm_lang$core$Maybe$Just(_p8._0._0)
 							}),
 						_1: _elm_lang$core$Platform_Cmd$none
 					};
 				}
 			case 'InputTimerId':
-				var _p8 = _p5._0;
-				if (A2(_clojj$timeerz$Main$validateTimerId, model, _p8)) {
+				var _p12 = _p8._0;
+				if (A2(_clojj$timeerz$Main$validateTimerId, model, _p12)) {
 					return {
 						ctor: '_Tuple2',
 						_0: _elm_lang$core$Native_Utils.update(
 							model,
-							{timerId: _p8, error: ''}),
+							{timerId: _p12, error: ''}),
 						_1: _elm_lang$core$Platform_Cmd$none
 					};
 				} else {
 					var errMsg = function () {
-						var _p7 = _p8;
-						if (_p7 === '') {
+						var _p11 = _p12;
+						if (_p11 === '') {
 							return '';
 						} else {
 							return 'invalid ID';
@@ -11821,40 +11918,27 @@ var _clojj$timeerz$Main$update = F2(
 						ctor: '_Tuple2',
 						_0: _elm_lang$core$Native_Utils.update(
 							model,
-							{timerId: _p8, error: errMsg}),
+							{timerId: _p12, error: errMsg}),
 						_1: _elm_lang$core$Platform_Cmd$none
 					};
 				}
-			case 'Send':
-				var res = _clojj$timeerz$Main$encodeTimerId(
-					_clojj$timeerz$Main$TimerId(model.timerId));
-				return {
-					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
-						model,
-						{timerId: ''}),
-					_1: A2(
-						_elm_lang$websocket$WebSocket$send,
-						'ws://localhost:8080/timeerz-jee-demo-1.0-SNAPSHOT/timeerz',
-						A2(_elm_lang$core$Json_Encode$encode, 1, res))
-				};
 			case 'UpdateMessage':
 				return {
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
 						model,
-						{data: _p5._0}),
+						{data: _p8._0}),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
 			case 'NewMessage':
-				var _p9 = _clojj$timeerz$Main$decodeTimerInfo(_p5._0);
-				if (_p9.ctor === 'Ok') {
+				var _p13 = _clojj$timeerz$Main$decodeTimerData(_p8._0);
+				if (_p13.ctor === 'Ok') {
 					return {
 						ctor: '_Tuple2',
 						_0: _elm_lang$core$Native_Utils.update(
 							model,
 							{
-								timeerz: {ctor: '::', _0: _p9._0, _1: model.timeerz}
+								timeerz: {ctor: '::', _0: _p13._0, _1: model.timeerz}
 							}),
 						_1: _elm_lang$core$Platform_Cmd$none
 					};
@@ -11863,7 +11947,7 @@ var _clojj$timeerz$Main$update = F2(
 						ctor: '_Tuple2',
 						_0: _elm_lang$core$Native_Utils.update(
 							model,
-							{error: _p9._0}),
+							{error: _p13._0}),
 						_1: _elm_lang$core$Platform_Cmd$none
 					};
 				}
@@ -11872,14 +11956,10 @@ var _clojj$timeerz$Main$update = F2(
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
 						model,
-						{tableState: _p5._0}),
+						{tableState: _p8._0}),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
 		}
-	});
-var _clojj$timeerz$Main$Model = F6(
-	function (a, b, c, d, e, f) {
-		return {timerId: a, tableState: b, timeerz: c, rsError: d, error: e, data: f};
 	});
 var _clojj$timeerz$Main$LoadTimeerz = function (a) {
 	return {ctor: 'LoadTimeerz', _0: a};
@@ -11890,10 +11970,11 @@ var _clojj$timeerz$Main$initialCmd = A2(
 	_elm_lang$http$Http$getString('http://localhost:8080/timeerz-jee-demo-1.0-SNAPSHOT/rs/timeerz/list'));
 var _clojj$timeerz$Main$init = {
 	ctor: '_Tuple2',
-	_0: A6(
+	_0: A7(
 		_clojj$timeerz$Main$Model,
 		'',
 		_evancz$elm_sortable_table$Table$initialSort('Timer-ID'),
+		{ctor: '[]'},
 		{ctor: '[]'},
 		_elm_lang$core$Maybe$Nothing,
 		'',
@@ -11903,32 +11984,6 @@ var _clojj$timeerz$Main$init = {
 var _clojj$timeerz$Main$SetTableState = function (a) {
 	return {ctor: 'SetTableState', _0: a};
 };
-var _clojj$timeerz$Main$config = _evancz$elm_sortable_table$Table$config(
-	{
-		toId: function (_) {
-			return _.timerId;
-		},
-		toMsg: _clojj$timeerz$Main$SetTableState,
-		columns: {
-			ctor: '::',
-			_0: A2(
-				_evancz$elm_sortable_table$Table$stringColumn,
-				'Timer-ID',
-				function (_) {
-					return _.timerId;
-				}),
-			_1: {
-				ctor: '::',
-				_0: A2(
-					_evancz$elm_sortable_table$Table$stringColumn,
-					'Data',
-					function (_) {
-						return _.timerData;
-					}),
-				_1: {ctor: '[]'}
-			}
-		}
-	});
 var _clojj$timeerz$Main$UpdateMessage = function (a) {
 	return {ctor: 'UpdateMessage', _0: a};
 };
@@ -11948,6 +12003,54 @@ var _clojj$timeerz$Main$subscriptions = function (model) {
 		});
 };
 var _clojj$timeerz$Main$Send = {ctor: 'Send'};
+var _clojj$timeerz$Main$ToggleSelected = function (a) {
+	return {ctor: 'ToggleSelected', _0: a};
+};
+var _clojj$timeerz$Main$toRowAttrs = function (timerData) {
+	return {
+		ctor: '::',
+		_0: _elm_lang$html$Html_Events$onClick(
+			_clojj$timeerz$Main$ToggleSelected(timerData.timerId)),
+		_1: {
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$style(
+				{
+					ctor: '::',
+					_0: {
+						ctor: '_Tuple2',
+						_0: 'background',
+						_1: timerData.active ? '#CEFAF8' : 'white'
+					},
+					_1: {ctor: '[]'}
+				}),
+			_1: {ctor: '[]'}
+		}
+	};
+};
+var _clojj$timeerz$Main$config = _evancz$elm_sortable_table$Table$customConfig(
+	{
+		toId: function (_) {
+			return _.timerId;
+		},
+		toMsg: _clojj$timeerz$Main$SetTableState,
+		columns: {
+			ctor: '::',
+			_0: A2(
+				_evancz$elm_sortable_table$Table$stringColumn,
+				'Timer-ID',
+				function (_) {
+					return _.timerId;
+				}),
+			_1: {
+				ctor: '::',
+				_0: _clojj$timeerz$Main$checkboxColumn,
+				_1: {ctor: '[]'}
+			}
+		},
+		customizations: _elm_lang$core$Native_Utils.update(
+			_evancz$elm_sortable_table$Table$defaultCustomizations,
+			{rowAttrs: _clojj$timeerz$Main$toRowAttrs})
+	});
 var _clojj$timeerz$Main$InputTimerId = function (a) {
 	return {ctor: 'InputTimerId', _0: a};
 };
@@ -12124,25 +12227,15 @@ var _clojj$timeerz$Main$view = function (model) {
 									{
 										ctor: '::',
 										_0: A2(
-											_elm_lang$html$Html$div,
+											_elm_lang$html$Html$button,
 											{
 												ctor: '::',
-												_0: _elm_lang$html$Html_Attributes$style(
-													{
-														ctor: '::',
-														_0: {ctor: '_Tuple2', _0: 'color', _1: 'red'},
-														_1: {ctor: '[]'}
-													}),
-												_1: {
-													ctor: '::',
-													_0: _elm_lang$html$Html_Attributes$class('small'),
-													_1: {ctor: '[]'}
-												}
+												_0: _elm_lang$html$Html_Events$onClick(_clojj$timeerz$Main$Send),
+												_1: {ctor: '[]'}
 											},
 											{
 												ctor: '::',
-												_0: _elm_lang$html$Html$text(
-													_clojj$timeerz$Main$httpError(model.rsError)),
+												_0: _elm_lang$html$Html$text('Send'),
 												_1: {ctor: '[]'}
 											}),
 										_1: {ctor: '[]'}
@@ -12171,17 +12264,64 @@ var _clojj$timeerz$Main$view = function (model) {
 											ctor: '::',
 											_0: A2(
 												_elm_lang$html$Html$div,
-												{ctor: '[]'},
 												{
 													ctor: '::',
-													_0: _elm_lang$html$Html$text(model.data),
+													_0: _elm_lang$html$Html_Attributes$style(
+														{
+															ctor: '::',
+															_0: {ctor: '_Tuple2', _0: 'color', _1: 'red'},
+															_1: {ctor: '[]'}
+														}),
+													_1: {
+														ctor: '::',
+														_0: _elm_lang$html$Html_Attributes$class('small'),
+														_1: {ctor: '[]'}
+													}
+												},
+												{
+													ctor: '::',
+													_0: _elm_lang$html$Html$text(
+														_clojj$timeerz$Main$httpError(model.rsError)),
 													_1: {ctor: '[]'}
 												}),
 											_1: {ctor: '[]'}
 										}),
 									_1: {ctor: '[]'}
 								}),
-							_1: {ctor: '[]'}
+							_1: {
+								ctor: '::',
+								_0: A2(
+									_rundis$elm_bootstrap$Bootstrap_Grid$row,
+									{ctor: '[]'},
+									{
+										ctor: '::',
+										_0: A2(
+											_rundis$elm_bootstrap$Bootstrap_Grid$col,
+											{
+												ctor: '::',
+												_0: _rundis$elm_bootstrap$Bootstrap_Grid_Col$xs12,
+												_1: {
+													ctor: '::',
+													_0: _rundis$elm_bootstrap$Bootstrap_Grid_Col$mdAuto,
+													_1: {ctor: '[]'}
+												}
+											},
+											{
+												ctor: '::',
+												_0: A2(
+													_elm_lang$html$Html$div,
+													{ctor: '[]'},
+													{
+														ctor: '::',
+														_0: _elm_lang$html$Html$text(model.data),
+														_1: {ctor: '[]'}
+													}),
+												_1: {ctor: '[]'}
+											}),
+										_1: {ctor: '[]'}
+									}),
+								_1: {ctor: '[]'}
+							}
 						}
 					}
 				}

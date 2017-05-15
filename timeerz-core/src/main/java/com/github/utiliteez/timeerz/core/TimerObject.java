@@ -10,5 +10,5 @@ public interface TimerObject extends Delayed {
     Consumer<Long> getConsumer();
     boolean isRepeat();
     boolean isActive();
-    void deactivate();
+    boolean toggleActivation();
 }

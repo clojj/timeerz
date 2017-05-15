@@ -2,7 +2,7 @@ package com.github.utiliteez.timeerz.webconsole.rs;
 
 import com.github.utiliteez.timeerz.core.TimerObject;
 import com.github.utiliteez.timeerz.jee.TimeerzManager;
-import com.github.utiliteez.timeerz.webconsole.model.TimerInfoMessage;
+import com.github.utiliteez.timeerz.webconsole.model.TimerDataMessage;
 import org.jetbrains.annotations.NotNull;
 
 import javax.inject.Inject;
@@ -24,12 +24,12 @@ public class TimeerzResources {
     @GET
     @Path("list")
     @Produces(MediaType.APPLICATION_JSON)
-    public List<TimerInfoMessage> list() throws WebApplicationException {
-        return timeerzManager.listAllActive().stream().map(TimeerzResources::convert).collect(Collectors.toCollection(ArrayList::new));
+    public List<TimerDataMessage> list() throws WebApplicationException {
+        return timeerzManager.listAll().stream().map(TimeerzResources::convert).collect(Collectors.toCollection(ArrayList::new));
     }
 
     @NotNull
-    private static TimerInfoMessage convert(TimerObject timerObject) {
-        return new TimerInfoMessage(timerObject.getId(), timerObject.toString());
+    private static TimerDataMessage convert(TimerObject timerObject) {
+        return new TimerDataMessage(timerObject.getId(), timerObject.isActive(), timerObject.toString());
     }
 }
