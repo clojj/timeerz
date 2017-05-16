@@ -1,11 +1,11 @@
 package com.github.utiliteez.timeerz.jee;
 
-import com.github.utiliteez.timeerz.core.DelayQueueScheduler;
-import com.github.utiliteez.timeerz.core.TimerObject;
-import com.github.utiliteez.timeerz.core.TimerObjectCron;
-import com.github.utiliteez.timeerz.jee.cdiextension.BeanType;
-import com.github.utiliteez.timeerz.jee.model.ScheduledMethod;
-import com.github.utiliteez.timeerz.jee.model.TimerFiredEvent;
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
+import java.util.logging.Logger;
 
 import javax.annotation.Resource;
 import javax.enterprise.concurrent.ManagedExecutorService;
@@ -19,12 +19,13 @@ import javax.enterprise.inject.spi.CDI;
 import javax.inject.Inject;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
-import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.Supplier;
-import java.util.logging.Logger;
+
+import com.github.utiliteez.timeerz.core.DelayQueueScheduler;
+import com.github.utiliteez.timeerz.core.TimerObject;
+import com.github.utiliteez.timeerz.core.TimerObjectCron;
+import com.github.utiliteez.timeerz.jee.cdiextension.BeanType;
+import com.github.utiliteez.timeerz.jee.model.ScheduledMethod;
+import com.github.utiliteez.timeerz.jee.model.TimerFiredEvent;
 
 @ApplicationScoped
 public class TimeerzManager {
@@ -81,13 +82,18 @@ public class TimeerzManager {
 	                // TODO "exclusive job" as an option
 	                // TODO list of N jobs allowed concurrently
                     if (job.isDone()) {
-                        createJob(scheduledMethod, timerObject);
+	                    job = CompletableFuture.supplyAsync(runnableMethod(scheduledMethod), mes);
+	                    LOG.info("Start next Job");
                     } else {
                         LOG.info("Job running.. skipping timer");
                     }
                 } else {
-                    createJob(scheduledMethod, timerObject);
+	                job = CompletableFuture.supplyAsync(runnableMethod(scheduledMethod), mes);
+	                LOG.info("Start next Job");
                 }
+	            timerObject.setCompletableFuture(job);
+
+	            // TODO use result (Object) of async job
 
                 // move to DelayQueueTaker ?
                 timerFiredEvent.fire(new TimerFiredEvent(timerObject, now));
@@ -105,13 +111,7 @@ public class TimeerzManager {
         return delayQueueScheduler.toggleActivation(timerId);
     }
 
-    private void createJob(ScheduledMethod scheduledMethod, TimerObjectCron timerObject) {
-        CompletableFuture<Object> completableFuture = CompletableFuture.supplyAsync(runnableMethod(scheduledMethod), mes);
-        timerObject.setCompletableFuture(completableFuture);
-        LOG.info("Start next Job");
-    }
-
-    private Supplier<Object> runnableMethod(ScheduledMethod scheduledMethod) {
+	private Supplier<Object> runnableMethod(ScheduledMethod scheduledMethod) {
         return () -> {
             try {
                 return scheduledMethod.getMethod().getJavaMember().invoke(scheduledMethod.getInstance());
