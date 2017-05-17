@@ -1,6 +1,7 @@
 package com.github.utiliteez.timeerz.core;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.DelayQueue;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ThreadFactory;
@@ -28,7 +29,7 @@ public class DelayQueueScheduler {
 	}
 
 	public void startWithNewThread() {
-		DelayQueueTaker delayQueueTaker = new DelayQueueTaker(delayQueue);
+		DelayQueueTaker delayQueueTaker = new DelayQueueTaker(delayQueue, executor);
 		thread = new Thread(delayQueueTaker, "DelayQueueScheduler Default Daemon-Thread");
 		thread.setPriority(Thread.MIN_PRIORITY);
 		thread.setDaemon(true);
@@ -36,7 +37,7 @@ public class DelayQueueScheduler {
 	}
 
 	public void startWithThreadFactory(ThreadFactory threadFactory) {
-		DelayQueueTaker delayQueueTaker = new DelayQueueTaker(delayQueue);
+		DelayQueueTaker delayQueueTaker = new DelayQueueTaker(delayQueue, executor);
 		thread = threadFactory.newThread(delayQueueTaker);
 		thread.start();
 	}
@@ -87,8 +88,11 @@ public class DelayQueueScheduler {
 
 		private DelayQueue<TimerObject> delayQueue;
 
-		private DelayQueueTaker(DelayQueue<TimerObject> delayQueue) {
+		private Executor executor;
+
+		private DelayQueueTaker(DelayQueue<TimerObject> delayQueue, Executor executor) {
 			this.delayQueue = delayQueue;
+			this.executor = executor;
 		}
 
 		public void run() {
@@ -98,8 +102,15 @@ public class DelayQueueScheduler {
 
 					if (timerObject.isActive()) {
 
-						// 1) callback object
-						timerObject.getConsumer().accept(System.nanoTime());
+						// 0) call async job-method
+						// TODO use result (Object) of async job
+
+						if (timerObject.getRunnableMethod() != null) {
+							executeJob(timerObject);
+						}
+
+						// 1) call event consumer
+						timerObject.getEventConsumer().accept(System.nanoTime());
 
 						// 2) TODO create global callback/event
 						// this should enable monitoring all Timer-events (JMX, CDI, ...?)
@@ -114,6 +125,28 @@ public class DelayQueueScheduler {
 				LOG.log(Level.WARNING, "Timer thread interrupted: ", e);
 				Thread.currentThread().interrupt();
 			}
+		}
+
+		private void executeJob(TimerObject timerObject) {
+			CompletableFuture<Object> job = timerObject.getJob();
+			if (job != null) {
+                // TODO "exclusive job" as an option
+                // TODO list of N jobs allowed concurrently
+                if (job.isDone()) {
+                    job = createAsyncJob(timerObject);
+                    LOG.info("Start next Job");
+                } else {
+                    LOG.info("Job running.. skipping timer");
+                }
+            } else {
+				job = createAsyncJob(timerObject);
+                LOG.info("Start next Job");
+            }
+			timerObject.setJob(job);
+		}
+
+		private CompletableFuture<Object> createAsyncJob(TimerObject timerObject) {
+			return executor != null ? CompletableFuture.supplyAsync(timerObject.getRunnableMethod(), executor) : CompletableFuture.supplyAsync(timerObject.getRunnableMethod());
 		}
 	}
 

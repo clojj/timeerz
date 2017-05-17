@@ -37,11 +37,11 @@ class DelayQueueSchedulerTest {
 
     @Test
     void test_non_repeating() throws InterruptedException {
-        delayQueueScheduler.add(new TimerObjectInterval(5000, TimeUnit.MILLISECONDS, false, this::consumer));
-        delayQueueScheduler.add(new TimerObjectInterval(1000, TimeUnit.MILLISECONDS, false, this::consumer));
-        delayQueueScheduler.add(new TimerObjectInterval(500, TimeUnit.MILLISECONDS, false, this::consumer));
-        delayQueueScheduler.add(new TimerObjectInterval(500, TimeUnit.MILLISECONDS, false, this::consumer));
-        delayQueueScheduler.add(new TimerObjectInterval(500, TimeUnit.MILLISECONDS, false, this::consumer));
+        delayQueueScheduler.add(new TimerObjectInterval(5000, TimeUnit.MILLISECONDS, false, this::consumer, null));
+        delayQueueScheduler.add(new TimerObjectInterval(1000, TimeUnit.MILLISECONDS, false, this::consumer, null));
+        delayQueueScheduler.add(new TimerObjectInterval(500, TimeUnit.MILLISECONDS, false, this::consumer, null));
+        delayQueueScheduler.add(new TimerObjectInterval(500, TimeUnit.MILLISECONDS, false, this::consumer, null));
+        delayQueueScheduler.add(new TimerObjectInterval(500, TimeUnit.MILLISECONDS, false, this::consumer, null));
         delayQueueScheduler.debugPrint();
 
         Thread.sleep(2000);
@@ -55,12 +55,12 @@ class DelayQueueSchedulerTest {
 
     @Test
     void test_deactivate_by_removing() throws InterruptedException {
-        TimerObjectInterval timerObjectToDeactivate = new TimerObjectInterval(5000, TimeUnit.MILLISECONDS, false, this::consumer);
+        TimerObjectInterval timerObjectToDeactivate = new TimerObjectInterval(5000, TimeUnit.MILLISECONDS, false, this::consumer, null);
         delayQueueScheduler.add(timerObjectToDeactivate);
-        delayQueueScheduler.add(new TimerObjectInterval(1000, TimeUnit.MILLISECONDS, false, this::consumer));
-        delayQueueScheduler.add(new TimerObjectInterval(500, TimeUnit.MILLISECONDS, false, this::consumer));
-        delayQueueScheduler.add(new TimerObjectInterval(500, TimeUnit.MILLISECONDS, false, this::consumer));
-        delayQueueScheduler.add(new TimerObjectInterval(500, TimeUnit.MILLISECONDS, false, this::consumer));
+        delayQueueScheduler.add(new TimerObjectInterval(1000, TimeUnit.MILLISECONDS, false, this::consumer, null));
+        delayQueueScheduler.add(new TimerObjectInterval(500, TimeUnit.MILLISECONDS, false, this::consumer, null));
+        delayQueueScheduler.add(new TimerObjectInterval(500, TimeUnit.MILLISECONDS, false, this::consumer, null));
+        delayQueueScheduler.add(new TimerObjectInterval(500, TimeUnit.MILLISECONDS, false, this::consumer, null));
         delayQueueScheduler.debugPrint();
 
         Thread.sleep(2000);
@@ -79,9 +79,9 @@ class DelayQueueSchedulerTest {
     @Test
     void test_coninciding_ordered() throws InterruptedException {
         List<Integer> results = new ArrayList<>();
-        delayQueueScheduler.add(new TimerObjectInterval(DELAY_NANOS, TimeUnit.NANOSECONDS, false, createNumberedConsumer(2, results)));
-        delayQueueScheduler.add(new TimerObjectInterval(DELAY_NANOS, TimeUnit.NANOSECONDS, false, createNumberedConsumer(3, results)));
-        delayQueueScheduler.add(new TimerObjectInterval(DELAY_NANOS, TimeUnit.NANOSECONDS, false, createNumberedConsumer(1, results)));
+        delayQueueScheduler.add(new TimerObjectInterval(DELAY_NANOS, TimeUnit.NANOSECONDS, false, createNumberedConsumer(2, results), null));
+        delayQueueScheduler.add(new TimerObjectInterval(DELAY_NANOS, TimeUnit.NANOSECONDS, false, createNumberedConsumer(3, results), null));
+        delayQueueScheduler.add(new TimerObjectInterval(DELAY_NANOS, TimeUnit.NANOSECONDS, false, createNumberedConsumer(1, results), null));
 
         delayQueueScheduler.debugPrint();
         Thread.sleep(2000);
@@ -94,7 +94,7 @@ class DelayQueueSchedulerTest {
 
     @Test
     void test_repeating() throws InterruptedException {
-        delayQueueScheduler.add(new TimerObjectInterval(1000, TimeUnit.MILLISECONDS, true, this::consumer));
+        delayQueueScheduler.add(new TimerObjectInterval(1000, TimeUnit.MILLISECONDS, true, this::consumer, null));
         delayQueueScheduler.debugPrint();
         Thread.sleep(2000);
         assertEquals(1, consumed);

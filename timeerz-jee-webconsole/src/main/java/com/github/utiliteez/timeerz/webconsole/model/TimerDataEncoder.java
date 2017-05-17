@@ -10,7 +10,7 @@ import java.io.StringWriter;
 
 public class TimerDataEncoder implements Encoder.Text<TimerDataMessage> {
 
-    private static StringWriter WRITER = new StringWriter();
+    private static StringWriter writer = new StringWriter();
 
     @Override
     public String encode(TimerDataMessage timerDataMessage) throws EncodeException {
@@ -19,9 +19,9 @@ public class TimerDataEncoder implements Encoder.Text<TimerDataMessage> {
                 .add("active", timerDataMessage.isActive())
                 .add("cronExpression", timerDataMessage.getCronExpression())
                 .build();
-        try (JsonWriter jsonWriter = Json.createWriter(WRITER)) {
+        try (JsonWriter jsonWriter = Json.createWriter(writer)) {
             jsonWriter.write(json);
-            return WRITER.toString();
+            return writer.toString();
         }
     }
 

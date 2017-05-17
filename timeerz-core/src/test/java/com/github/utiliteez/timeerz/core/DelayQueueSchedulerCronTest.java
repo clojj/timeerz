@@ -39,7 +39,7 @@ class DelayQueueSchedulerCronTest {
 
 	@Test
 	void test_repeating() throws InterruptedException {
-		delayQueueScheduler.add(new TimerObjectCron("id", CRON, this::consumer));
+		delayQueueScheduler.add(new TimerObjectCron("id", CRON, this::consumer, null));
 		delayQueueScheduler.debugPrint();
 		Thread.sleep(4000);
 		delayQueueScheduler.debugPrint();
@@ -50,9 +50,9 @@ class DelayQueueSchedulerCronTest {
     @Test
     void test_coninciding_ordered() throws InterruptedException {
         List<Integer> results = new ArrayList<>();
-        delayQueueScheduler.add(new TimerObjectCron("id2", CRON, createNumberedConsumer(2, results)));
-        delayQueueScheduler.add(new TimerObjectCron("id3", CRON, createNumberedConsumer(3, results)));
-        delayQueueScheduler.add(new TimerObjectCron("id1", CRON, createNumberedConsumer(1, results)));
+        delayQueueScheduler.add(new TimerObjectCron("id2", CRON, createNumberedConsumer(2, results), null));
+        delayQueueScheduler.add(new TimerObjectCron("id3", CRON, createNumberedConsumer(3, results), null));
+        delayQueueScheduler.add(new TimerObjectCron("id1", CRON, createNumberedConsumer(1, results), null));
 
         delayQueueScheduler.debugPrint();
         Thread.sleep(3000);

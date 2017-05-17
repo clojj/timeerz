@@ -1,23 +1,30 @@
 package com.github.utiliteez.timeerz.core;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 public class TimerObjectInterval implements TimerObject {
     private final long interval;
     private TimeUnit timeUnit;
     private long startTime;
     private final boolean repeat;
-    private final Consumer<Long> consumer;
+
+    private final Consumer<Long> eventConsumer;
+    private Supplier<Object> runnableMethod;
+    private CompletableFuture<Object> job;
+
 	private boolean active;
 
-	public TimerObjectInterval(long interval, TimeUnit timeUnit, boolean repeat, Consumer<Long> consumer) {
+	public TimerObjectInterval(long interval, TimeUnit timeUnit, boolean repeat, Consumer<Long> eventConsumer, Supplier<Object> runnableMethod) {
         this.interval = interval;
         this.timeUnit = timeUnit;
         this.startTime = currentTime(timeUnit) + this.interval;
         this.repeat = repeat;
-        this.consumer = consumer;
+        this.eventConsumer = eventConsumer;
+        this.runnableMethod = runnableMethod;
         this.active = true;
     }
 
@@ -47,11 +54,14 @@ public class TimerObjectInterval implements TimerObject {
         return 0;
     }
 
-    public Consumer<Long> getConsumer() {
-        return consumer;
+    public Consumer<Long> getEventConsumer() {
+        return eventConsumer;
     }
 
-    public boolean isRepeat() {
+    @Override
+    public Supplier<Object> getRunnableMethod() {
+        return runnableMethod;
+    }    public boolean isRepeat() {
         return repeat;
     }
 
@@ -87,5 +97,14 @@ public class TimerObjectInterval implements TimerObject {
                 ", startTime=" + startTime +
                 ", repeat=" + repeat +
                 '}';
+    }
+
+    @Override
+    public CompletableFuture<Object> getJob() {
+        return job;
+    }
+
+    public void setJob(CompletableFuture<Object> job) {
+        this.job = job;
     }
 }

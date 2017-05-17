@@ -22,7 +22,6 @@ import javax.naming.NamingException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 import java.util.logging.Logger;
 
@@ -47,7 +46,7 @@ public class TimeerzManager {
 
     public void init(@Observes @Initialized(ApplicationScoped.class) Object init) {
 
-        delayQueueScheduler = new DelayQueueScheduler();
+        delayQueueScheduler = new DelayQueueScheduler(mes);
         delayQueueScheduler.debugPrint("Starting timers...");
         delayQueueScheduler.startWithThreadFactory(managedThreadFactory);
 
@@ -73,29 +72,8 @@ public class TimeerzManager {
         // queue all timers
         for (ScheduledMethod scheduledMethod : scheduledMethods) {
 	        String timerId = scheduledMethod.getMethod().getJavaMember().getDeclaringClass().getCanonicalName() + "." + scheduledMethod.getMethod().getJavaMember().getName();
-	        TimerObjectCron timerObject = new TimerObjectCron(timerId, scheduledMethod.getCron());
-            timerObject.setConsumer(now -> {
-                CompletableFuture<Object> job = timerObject.getCompletableFuture();
-                if (job != null) {
-	                // TODO "exclusive job" as an option
-	                // TODO list of N jobs allowed concurrently
-                    if (job.isDone()) {
-	                    job = CompletableFuture.supplyAsync(runnableMethod(scheduledMethod), mes);
-	                    LOG.info("Start next Job");
-                    } else {
-                        LOG.info("Job running.. skipping timer");
-                    }
-                } else {
-	                job = CompletableFuture.supplyAsync(runnableMethod(scheduledMethod), mes);
-	                LOG.info("Start next Job");
-                }
-	            timerObject.setCompletableFuture(job);
-
-	            // TODO use result (Object) of async job
-
-                // move to DelayQueueTaker ?
-                timerFiredEvent.fire(new TimerFiredEvent(timerObject, now));
-            });
+	        TimerObjectCron timerObject = new TimerObjectCron(timerId, scheduledMethod.getCron(), null, runnableMethod(scheduledMethod));
+            timerObject.setEventConsumer(now -> timerFiredEvent.fire(new TimerFiredEvent(timerObject, now)));
 
             delayQueueScheduler.add(timerObject);
         }
