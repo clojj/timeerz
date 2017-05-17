@@ -1,6 +1,11 @@
 package com.github.utiliteez.timeerz.core;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.DelayQueue;
 import java.util.concurrent.Executor;
@@ -39,6 +44,7 @@ public class DelayQueueScheduler {
 	public void startWithThreadFactory(ThreadFactory threadFactory) {
 		DelayQueueTaker delayQueueTaker = new DelayQueueTaker(delayQueue, executor);
 		thread = threadFactory.newThread(delayQueueTaker);
+		thread.setName("DelayQueueTaker");
 		thread.start();
 	}
 
