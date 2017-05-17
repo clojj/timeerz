@@ -28,8 +28,7 @@ class DelayQueueSchedulerCronTest {
     @BeforeEach
     void setUp() {
         delayQueueScheduler = new DelayQueueScheduler();
-        Thread defaultThread = delayQueueScheduler.createDefaultThread(true, delayQueueScheduler.timerThreadInstance());
-        delayQueueScheduler.startWith(defaultThread);
+        delayQueueScheduler.startWithNewThread();
         delayQueueScheduler.debugPrint("initial timers:");
     }
 

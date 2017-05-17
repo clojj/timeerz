@@ -2,29 +2,43 @@ package com.github.utiliteez.timeerz.core;
 
 import java.util.*;
 import java.util.concurrent.DelayQueue;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ThreadFactory;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class DelayQueueScheduler {
 
-	private final DelayQueue<TimerObject> delayQueue;
+	private static final Logger LOG = Logger.getLogger("DelayQueueScheduler LOG");
+
+	private final DelayQueue<TimerObject> delayQueue = new DelayQueue<>();
 
 	private Map<String, TimerObject> timers = Collections.synchronizedMap(new HashMap<>());
 
-	private Thread thread = null;
-	private DelayQueueTaker delayQueueTaker;
+	private Thread thread;
 
-	private static final Logger LOG = Logger.getLogger("DelayQueueScheduler LOG");
+	// TODO
+	private Executor executor;
 
 	public DelayQueueScheduler() {
-		delayQueue = new DelayQueue<>();
 	}
 
-	public Thread createDefaultThread(boolean isDaemon, Runnable runnable) {
-		Thread thread = new Thread(runnable, "DelayQueueScheduler-Thread");
+	public DelayQueueScheduler(Executor executor) {
+		this.executor = executor;
+	}
+
+	public void startWithNewThread() {
+		DelayQueueTaker delayQueueTaker = new DelayQueueTaker(delayQueue);
+		thread = new Thread(delayQueueTaker, "DelayQueueScheduler Default Daemon-Thread");
 		thread.setPriority(Thread.MIN_PRIORITY);
-		thread.setDaemon(isDaemon);
-		return thread;
+		thread.setDaemon(true);
+		thread.start();
+	}
+
+	public void startWithThreadFactory(ThreadFactory threadFactory) {
+		DelayQueueTaker delayQueueTaker = new DelayQueueTaker(delayQueue);
+		thread = threadFactory.newThread(delayQueueTaker);
+		thread.start();
 	}
 
 	public boolean add(TimerObject timerObject) {
@@ -34,19 +48,10 @@ public class DelayQueueScheduler {
 
 	// todo: add( timerId), remove( timerId ), reconfigure( timerId, cronExpression )
 
-	public Map<String, TimerObject> getTimers() {
-		return timers;
-	}
-
 	public List<TimerObject> allTimers() {
 		ArrayList<TimerObject> timerObjects = new ArrayList<>(timers.values());
 		timerObjects.sort(Comparator.comparing(TimerObject::getId));
 		return timerObjects;
-	}
-
-	public void startWith(Thread thread) {
-		this.thread = thread;
-		thread.start();
 	}
 
 	public void stop() {
@@ -78,14 +83,13 @@ public class DelayQueueScheduler {
 		return delayQueue.size();
 	}
 
-	public DelayQueueTaker timerThreadInstance() {
-		if (delayQueueTaker == null) {
-			delayQueueTaker = new DelayQueueTaker();
-		}
-		return delayQueueTaker;
-	}
+	private class DelayQueueTaker implements Runnable {
 
-	public class DelayQueueTaker implements Runnable {
+		private DelayQueue<TimerObject> delayQueue;
+
+		private DelayQueueTaker(DelayQueue<TimerObject> delayQueue) {
+			this.delayQueue = delayQueue;
+		}
 
 		public void run() {
 			try {

@@ -1,11 +1,11 @@
 package com.github.utiliteez.timeerz.jee;
 
-import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.Supplier;
-import java.util.logging.Logger;
+import com.github.utiliteez.timeerz.core.DelayQueueScheduler;
+import com.github.utiliteez.timeerz.core.TimerObject;
+import com.github.utiliteez.timeerz.core.TimerObjectCron;
+import com.github.utiliteez.timeerz.jee.cdiextension.BeanType;
+import com.github.utiliteez.timeerz.jee.model.ScheduledMethod;
+import com.github.utiliteez.timeerz.jee.model.TimerFiredEvent;
 
 import javax.annotation.Resource;
 import javax.enterprise.concurrent.ManagedExecutorService;
@@ -19,13 +19,12 @@ import javax.enterprise.inject.spi.CDI;
 import javax.inject.Inject;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
-
-import com.github.utiliteez.timeerz.core.DelayQueueScheduler;
-import com.github.utiliteez.timeerz.core.TimerObject;
-import com.github.utiliteez.timeerz.core.TimerObjectCron;
-import com.github.utiliteez.timeerz.jee.cdiextension.BeanType;
-import com.github.utiliteez.timeerz.jee.model.ScheduledMethod;
-import com.github.utiliteez.timeerz.jee.model.TimerFiredEvent;
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
+import java.util.logging.Logger;
 
 @ApplicationScoped
 public class TimeerzManager {
@@ -50,8 +49,7 @@ public class TimeerzManager {
 
         delayQueueScheduler = new DelayQueueScheduler();
         delayQueueScheduler.debugPrint("Starting timers...");
-        Thread thread = managedThreadFactory.newThread(delayQueueScheduler.timerThreadInstance());
-        delayQueueScheduler.startWith(thread);
+        delayQueueScheduler.startWithThreadFactory(managedThreadFactory);
 
         // get all bean instances
         for (ScheduledMethod scheduledMethod : scheduledMethods) {

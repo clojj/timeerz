@@ -98,14 +98,6 @@ public class TimerObjectCron implements TimerObject {
 		return this.active;
 	}
 
-	public long getStartTime() {
-        return startTime;
-    }
-
-    public Cron getCron() {
-        return cron;
-    }
-
     @Override
     public String toString() {
         return "TimerObjectCron{" +

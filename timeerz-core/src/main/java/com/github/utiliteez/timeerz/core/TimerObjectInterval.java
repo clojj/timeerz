@@ -18,6 +18,7 @@ public class TimerObjectInterval implements TimerObject {
         this.startTime = currentTime(timeUnit) + this.interval;
         this.repeat = repeat;
         this.consumer = consumer;
+        this.active = true;
     }
 
     @Override
