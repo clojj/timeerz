@@ -25,7 +25,7 @@ public class TimeerzEndpoint {
 
     @OnOpen
     public void open(final Session session) {
-        LOG.info("open");
+        LOG.info("open timeerz");
     }
 
     @OnMessage

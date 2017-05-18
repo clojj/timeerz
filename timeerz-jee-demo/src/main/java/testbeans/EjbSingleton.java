@@ -15,12 +15,12 @@ public class EjbSingleton {
     EjbTxNever ejbTxNever;
     */
 
-    @Timeer(value = "0/1 * * * * ?", exclusive = true)
+    @Timeer(value = "0/1 * * * * ?")
     public void singletonMethod() {
         // ejbTxNever.ejbTxNever(); // test if timer-triggered call is transactional !
 
         System.out.println("singletonMethod thread " + Thread.currentThread().getName());
-        Utils.sleep(8000);
+        Utils.sleep(5000);
     }
 
 }

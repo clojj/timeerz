@@ -12313,8 +12313,33 @@ var _clojj$timeerz$Main$view = function (model) {
 													{ctor: '[]'},
 													{
 														ctor: '::',
-														_0: _elm_lang$html$Html$text(model.data),
-														_1: {ctor: '[]'}
+														_0: A2(
+															_elm_lang$html$Html$br,
+															{ctor: '[]'},
+															{ctor: '[]'}),
+														_1: {
+															ctor: '::',
+															_0: A2(
+																_elm_lang$html$Html$label,
+																{ctor: '[]'},
+																{
+																	ctor: '::',
+																	_0: _elm_lang$html$Html$text('Job completed from timer:'),
+																	_1: {ctor: '[]'}
+																}),
+															_1: {
+																ctor: '::',
+																_0: A2(
+																	_elm_lang$html$Html$br,
+																	{ctor: '[]'},
+																	{ctor: '[]'}),
+																_1: {
+																	ctor: '::',
+																	_0: _elm_lang$html$Html$text(model.data),
+																	_1: {ctor: '[]'}
+																}
+															}
+														}
 													}),
 												_1: {ctor: '[]'}
 											}),
