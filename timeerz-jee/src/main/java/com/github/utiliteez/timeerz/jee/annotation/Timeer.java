@@ -9,4 +9,5 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 public @interface Timeer {
     String value();
+    boolean exclusive() default true;
 }

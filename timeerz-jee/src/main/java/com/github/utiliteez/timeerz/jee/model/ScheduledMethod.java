@@ -11,14 +11,16 @@ public class ScheduledMethod {
     private Class<?> clazz;
     private AnnotatedMethod<?> method;
     private Cron cron;
+    private boolean exclusive;
 
     private Object instance;
 
-    public ScheduledMethod(BeanType type, Class<?> clazz, AnnotatedMethod<?> method, Cron cron) {
+    public ScheduledMethod(BeanType type, Class<?> clazz, AnnotatedMethod<?> method, Cron cron, boolean exclusive) {
         this.type = type;
         this.clazz = clazz;
         this.method = method;
         this.cron = cron;
+        this.exclusive = exclusive;
     }
 
     public BeanType getType() {
@@ -43,5 +45,9 @@ public class ScheduledMethod {
 
     public void setInstance(Object instance) {
         this.instance = instance;
+    }
+
+    public boolean isExclusive() {
+        return exclusive;
     }
 }

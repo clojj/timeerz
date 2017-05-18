@@ -16,7 +16,7 @@ import java.util.function.IntUnaryOperator;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class DelayQueueSchedulerTest {
+class DelayQueueSchedulerIntervalTest {
 
     public static final int DELAY_NANOS = 500000000;
 

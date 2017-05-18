@@ -1,10 +1,11 @@
 package com.github.utiliteez.timeerz.jee;
 
-import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Supplier;
-import java.util.logging.Logger;
+import com.github.utiliteez.timeerz.core.DelayQueueScheduler;
+import com.github.utiliteez.timeerz.core.TimerObject;
+import com.github.utiliteez.timeerz.core.TimerObjectCron;
+import com.github.utiliteez.timeerz.jee.cdiextension.BeanType;
+import com.github.utiliteez.timeerz.jee.model.ScheduledMethod;
+import com.github.utiliteez.timeerz.jee.model.TimerFiredEvent;
 
 import javax.annotation.Resource;
 import javax.enterprise.concurrent.ManagedExecutorService;
@@ -18,13 +19,11 @@ import javax.enterprise.inject.spi.CDI;
 import javax.inject.Inject;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
-
-import com.github.utiliteez.timeerz.core.DelayQueueScheduler;
-import com.github.utiliteez.timeerz.core.TimerObject;
-import com.github.utiliteez.timeerz.core.TimerObjectCron;
-import com.github.utiliteez.timeerz.jee.cdiextension.BeanType;
-import com.github.utiliteez.timeerz.jee.model.ScheduledMethod;
-import com.github.utiliteez.timeerz.jee.model.TimerFiredEvent;
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Supplier;
+import java.util.logging.Logger;
 
 @ApplicationScoped
 public class TimeerzManager {
@@ -73,7 +72,7 @@ public class TimeerzManager {
 		// queue all timers
 		for (ScheduledMethod scheduledMethod : scheduledMethods) {
 			String timerId = scheduledMethod.getMethod().getJavaMember().getDeclaringClass().getCanonicalName() + "." + scheduledMethod.getMethod().getJavaMember().getName();
-			TimerObjectCron timerObject = new TimerObjectCron(timerId, scheduledMethod.getCron(), null, runnableMethod(scheduledMethod));
+			TimerObjectCron timerObject = new TimerObjectCron(timerId, scheduledMethod.getCron(), null, runnableMethod(scheduledMethod, timerId), scheduledMethod.isExclusive());
 			timerObject.setEventConsumer(now -> {
 				timerFiredEvent.fire(new TimerFiredEvent(timerObject, now));
 			});
@@ -90,12 +89,12 @@ public class TimeerzManager {
 		return delayQueueScheduler.toggleActivation(timerId);
 	}
 
-	private Supplier<Object> runnableMethod(ScheduledMethod scheduledMethod) {
+	private Supplier<Object> runnableMethod(ScheduledMethod scheduledMethod, String timerId) {
 		return () -> {
 			try {
 				return scheduledMethod.getMethod().getJavaMember().invoke(scheduledMethod.getInstance());
 			} catch (IllegalAccessException | InvocationTargetException e) {
-				throw new RuntimeException("method call failed: ", e);
+				throw new RuntimeException("reflective method invokation failed on " + timerId, e);
 			}
 		};
 	}

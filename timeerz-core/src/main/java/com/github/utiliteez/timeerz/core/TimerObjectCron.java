@@ -5,6 +5,8 @@ import com.cronutils.model.field.expression.Every;
 import com.cronutils.model.time.ExecutionTime;
 
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
@@ -20,22 +22,24 @@ public class TimerObjectCron implements TimerObject {
 
     private Consumer<Long> eventConsumer;
     private Supplier<Object> runnableMethod;
-    private CompletableFuture<Object> job;
+    private boolean exclusive;
+    private List<CompletableFuture<Object>> jobs = new ArrayList<>();
 
 	private boolean active;
 
-	public TimerObjectCron(String id, Cron cron, Consumer<Long> eventConsumer, Supplier<Object> runnableMethod) {
+	public TimerObjectCron(String id, Cron cron, Consumer<Long> eventConsumer, Supplier<Object> runnableMethod, boolean exclusive) {
         this.id = id;
         this.cron = cron;
         this.startTime = ExecutionTime.forCron(cron).nextExecution(ZonedDateTime.now()).toInstant().toEpochMilli();
         this.repeat = cron.retrieveFieldsAsMap().values().stream().anyMatch(cronField -> cronField.getExpression() instanceof Every);
         this.eventConsumer = eventConsumer;
         this.runnableMethod = runnableMethod;
+        this.exclusive = exclusive;
         this.active = true;
     }
 
     public TimerObjectCron(String id, Cron cron) {
-        this(id, cron, null, null);
+        this(id, cron, null, null, false);
     }
 
     public String getId() {
@@ -56,12 +60,9 @@ public class TimerObjectCron implements TimerObject {
         return eventConsumer;
     }
 
-    public CompletableFuture<Object> getJob() {
-        return job;
-    }
-
-    public void setJob(CompletableFuture<Object> job) {
-        this.job = job;
+    @Override
+    public List<CompletableFuture<Object>> getJobs() {
+        return jobs;
     }
 
     @Override
@@ -96,7 +97,12 @@ public class TimerObjectCron implements TimerObject {
         return repeat;
     }
 
-	@Override
+    @Override
+    public boolean isExclusive() {
+        return exclusive;
+    }
+
+    @Override
 	public synchronized boolean isActive() {
 		return active;
 	}

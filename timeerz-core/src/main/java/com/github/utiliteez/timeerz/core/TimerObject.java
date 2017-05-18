@@ -1,5 +1,6 @@
 package com.github.utiliteez.timeerz.core;
 
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Delayed;
 import java.util.function.Consumer;
@@ -11,9 +12,9 @@ public interface TimerObject extends Delayed {
     void reset();
     Consumer<Long> getEventConsumer();
     Supplier<Object> getRunnableMethod();
-    CompletableFuture<Object> getJob();
-    void setJob(CompletableFuture<Object> job);
+    List<CompletableFuture<Object>> getJobs();
     boolean isRepeat();
+    boolean isExclusive();
     boolean isActive();
     boolean toggleActivation();
 }

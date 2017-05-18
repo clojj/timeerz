@@ -1,9 +1,9 @@
 package testbeans;
 
+import com.github.utiliteez.timeerz.jee.model.TimerFiredEvent;
+
 import javax.ejb.Singleton;
 import javax.enterprise.event.Observes;
-
-import com.github.utiliteez.timeerz.jee.model.TimerFiredEvent;
 
 @Singleton
 public class ObserverSingleton {

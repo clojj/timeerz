@@ -1,5 +1,7 @@
 package com.github.utiliteez.timeerz.core;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
@@ -15,10 +17,11 @@ public class TimerObjectInterval implements TimerObject {
     private final Consumer<Long> eventConsumer;
     private Supplier<Object> runnableMethod;
     private CompletableFuture<Object> job;
+    private List<CompletableFuture<Object>> jobs = new ArrayList<>();
 
-	private boolean active;
+    private boolean active;
 
-	public TimerObjectInterval(long interval, TimeUnit timeUnit, boolean repeat, Consumer<Long> eventConsumer, Supplier<Object> runnableMethod) {
+    public TimerObjectInterval(long interval, TimeUnit timeUnit, boolean repeat, Consumer<Long> eventConsumer, Supplier<Object> runnableMethod) {
         this.interval = interval;
         this.timeUnit = timeUnit;
         this.startTime = currentTime(timeUnit) + this.interval;
@@ -61,11 +64,23 @@ public class TimerObjectInterval implements TimerObject {
     @Override
     public Supplier<Object> getRunnableMethod() {
         return runnableMethod;
-    }    public boolean isRepeat() {
+    }
+
+    @Override
+    public List<CompletableFuture<Object>> getJobs() {
+        return jobs;
+    }
+
+    public boolean isRepeat() {
         return repeat;
     }
 
-	@Override
+    @Override
+    public boolean isExclusive() {
+        return false;
+    }
+
+    @Override
 	public synchronized boolean isActive() {
 		return active;
 	}
@@ -99,12 +114,4 @@ public class TimerObjectInterval implements TimerObject {
                 '}';
     }
 
-    @Override
-    public CompletableFuture<Object> getJob() {
-        return job;
-    }
-
-    public void setJob(CompletableFuture<Object> job) {
-        this.job = job;
-    }
 }

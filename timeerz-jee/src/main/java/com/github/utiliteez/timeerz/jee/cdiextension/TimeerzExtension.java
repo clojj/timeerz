@@ -43,7 +43,7 @@ public class TimeerzExtension<R> implements Extension {
                 Class<?> clazz = method.getJavaMember().getDeclaringClass();
                 Cron cron = parser.parse(annotation.value());
 
-	            ScheduledMethod scheduledMethod = new ScheduledMethod(type, clazz, method, cron);
+	            ScheduledMethod scheduledMethod = new ScheduledMethod(type, clazz, method, cron, annotation.exclusive());
 	            scheduledMethods.add(scheduledMethod);
             }
         }
