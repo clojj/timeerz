@@ -1,13 +1,5 @@
 package com.github.utiliteez.timeerz.core;
 
-import com.cronutils.model.Cron;
-import com.cronutils.model.CronType;
-import com.cronutils.model.definition.CronDefinitionBuilder;
-import com.cronutils.parser.CronParser;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -16,7 +8,15 @@ import java.util.function.IntBinaryOperator;
 import java.util.function.IntFunction;
 import java.util.function.IntUnaryOperator;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import com.cronutils.model.Cron;
+import com.cronutils.model.CronType;
+import com.cronutils.model.definition.CronDefinitionBuilder;
+import com.cronutils.parser.CronParser;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 class DelayQueueSchedulerCronTest {
 
@@ -39,7 +39,7 @@ class DelayQueueSchedulerCronTest {
 
 	@Test
 	void test_repeating() throws InterruptedException {
-		delayQueueScheduler.add(new TimerObjectCron("id", CRON, this::consumer, null, false));
+		delayQueueScheduler.add(new TimerObjectCron("id", CRON, this::consumer, null, false, null));
 		delayQueueScheduler.debugPrint();
 		Thread.sleep(4000);
 		delayQueueScheduler.debugPrint();
@@ -50,9 +50,9 @@ class DelayQueueSchedulerCronTest {
     @Test
     void test_coninciding_ordered() throws InterruptedException {
         List<Integer> results = new ArrayList<>();
-        delayQueueScheduler.add(new TimerObjectCron("id2", CRON, createNumberedConsumer(2, results), null, false));
-        delayQueueScheduler.add(new TimerObjectCron("id3", CRON, createNumberedConsumer(3, results), null, false));
-        delayQueueScheduler.add(new TimerObjectCron("id1", CRON, createNumberedConsumer(1, results), null, false));
+        delayQueueScheduler.add(new TimerObjectCron("id2", CRON, createNumberedConsumer(2, results), null, false, null));
+        delayQueueScheduler.add(new TimerObjectCron("id3", CRON, createNumberedConsumer(3, results), null, false, null));
+        delayQueueScheduler.add(new TimerObjectCron("id1", CRON, createNumberedConsumer(1, results), null, false, null));
 
         delayQueueScheduler.debugPrint();
         Thread.sleep(3000);

@@ -1,17 +1,16 @@
 package com.github.utiliteez.timeerz.core;
 
-import com.cronutils.model.Cron;
-import com.cronutils.model.field.expression.Every;
-import com.cronutils.model.time.ExecutionTime;
-
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+
+import com.cronutils.model.Cron;
+import com.cronutils.model.field.expression.Every;
+import com.cronutils.model.time.ExecutionTime;
 
 public class TimerObjectCron implements TimerObject {
 
@@ -23,11 +22,12 @@ public class TimerObjectCron implements TimerObject {
     private Consumer<Long> eventConsumer;
     private Supplier<Object> runnableMethod;
     private boolean exclusive;
-    private List<CompletableFuture<Object>> jobs = new ArrayList<>();
+    private ConcurrentLinkedQueue<CompletableFuture> jobs = new ConcurrentLinkedQueue<>();
+	private Runnable jobCompletionRunnable;
 
 	private boolean active;
 
-	public TimerObjectCron(String id, Cron cron, Consumer<Long> eventConsumer, Supplier<Object> runnableMethod, boolean exclusive) {
+	public TimerObjectCron(String id, Cron cron, Consumer<Long> eventConsumer, Supplier<Object> runnableMethod, boolean exclusive, final Runnable jobCompletionRunnable) {
         this.id = id;
         this.cron = cron;
         this.startTime = ExecutionTime.forCron(cron).nextExecution(ZonedDateTime.now()).toInstant().toEpochMilli();
@@ -35,11 +35,12 @@ public class TimerObjectCron implements TimerObject {
         this.eventConsumer = eventConsumer;
         this.runnableMethod = runnableMethod;
         this.exclusive = exclusive;
-        this.active = true;
+		this.jobCompletionRunnable = jobCompletionRunnable;
+		this.active = true;
     }
 
     public TimerObjectCron(String id, Cron cron) {
-        this(id, cron, null, null, false);
+        this(id, cron, null, null, false, null);
     }
 
     public String getId() {
@@ -61,7 +62,7 @@ public class TimerObjectCron implements TimerObject {
     }
 
     @Override
-    public List<CompletableFuture<Object>> getJobs() {
+    public ConcurrentLinkedQueue<CompletableFuture> getJobs() {
         return jobs;
     }
 
@@ -112,7 +113,12 @@ public class TimerObjectCron implements TimerObject {
 		return this.active;
 	}
 
-    @Override
+	@Override
+	public Runnable getJobCompletionRunnable() {
+		return jobCompletionRunnable;
+	}
+
+	@Override
     public String toString() {
         return "TimerObjectCron{" +
                 "id='" + id + '\'' +

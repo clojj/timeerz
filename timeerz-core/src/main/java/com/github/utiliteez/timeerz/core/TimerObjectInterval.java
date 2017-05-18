@@ -1,8 +1,7 @@
 package com.github.utiliteez.timeerz.core;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -17,18 +16,20 @@ public class TimerObjectInterval implements TimerObject {
     private final Consumer<Long> eventConsumer;
     private Supplier<Object> runnableMethod;
     private CompletableFuture<Object> job;
-    private List<CompletableFuture<Object>> jobs = new ArrayList<>();
+    private ConcurrentLinkedQueue<CompletableFuture> jobs = new ConcurrentLinkedQueue<>();
+	private Runnable jobCompletionRunnable;
 
     private boolean active;
 
-    public TimerObjectInterval(long interval, TimeUnit timeUnit, boolean repeat, Consumer<Long> eventConsumer, Supplier<Object> runnableMethod) {
+    public TimerObjectInterval(long interval, TimeUnit timeUnit, boolean repeat, Consumer<Long> eventConsumer, Supplier<Object> runnableMethod, final Runnable jobCompletionRunnable) {
         this.interval = interval;
         this.timeUnit = timeUnit;
         this.startTime = currentTime(timeUnit) + this.interval;
         this.repeat = repeat;
         this.eventConsumer = eventConsumer;
         this.runnableMethod = runnableMethod;
-        this.active = true;
+	    this.jobCompletionRunnable = jobCompletionRunnable;
+	    this.active = true;
     }
 
     @Override
@@ -67,7 +68,7 @@ public class TimerObjectInterval implements TimerObject {
     }
 
     @Override
-    public List<CompletableFuture<Object>> getJobs() {
+    public ConcurrentLinkedQueue<CompletableFuture> getJobs() {
         return jobs;
     }
 
@@ -91,7 +92,12 @@ public class TimerObjectInterval implements TimerObject {
         return this.active;
 	}
 
-    private long currentTime(TimeUnit timeUnit) {
+	@Override
+	public Runnable getJobCompletionRunnable() {
+		return jobCompletionRunnable;
+	}
+
+	private long currentTime(TimeUnit timeUnit) {
         // these units are not possible in Quartz cron.. so they are provided in TimerObjectInterval !
         switch (timeUnit) {
             case NANOSECONDS:
