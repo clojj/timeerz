@@ -2,28 +2,21 @@ package com.github.utiliteez.timeerz.jee.model;
 
 import com.github.utiliteez.timeerz.core.TimerObject;
 
-public class TimerFiredEvent {
+public class JobCompletedEvent {
     private TimerObject timerObject;
-    private long now;
 
-    public TimerFiredEvent(TimerObject timerObject, long now) {
+    public JobCompletedEvent(TimerObject timerObject) {
         this.timerObject = timerObject;
-        this.now = now;
     }
 
     public TimerObject getTimerObject() {
         return timerObject;
     }
 
-    public long getNow() {
-        return now;
-    }
-
     @Override
     public String toString() {
-        return "TimerFiredEvent{" +
+        return "JobCompletedEvent{" +
                 "timerObject=" + timerObject +
-                ", now=" + now +
                 '}';
     }
 }

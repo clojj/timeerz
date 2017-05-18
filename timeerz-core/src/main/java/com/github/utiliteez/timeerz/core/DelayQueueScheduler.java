@@ -1,16 +1,7 @@
 package com.github.utiliteez.timeerz.core;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.DelayQueue;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ThreadFactory;
+import java.util.*;
+import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -111,10 +102,10 @@ public class DelayQueueScheduler {
 
                         // TODO use result (Object) of async job
 
-	                    timerObject.getEventConsumer().accept(System.nanoTime());
+                        timerObject.getEventConsumer().accept(System.nanoTime());
 
-	                    if (timerObject.getRunnableMethod() != null) {
-	                        executeJob(timerObject);
+                        if (timerObject.getRunnableMethod() != null) {
+                            executeJob(timerObject);
                         }
 
                         // TODO JMX monitoring ?
@@ -134,35 +125,22 @@ public class DelayQueueScheduler {
         private void executeJob(TimerObject timerObject) {
             // TODO list of N jobs allowed concurrently
             ConcurrentLinkedQueue<CompletableFuture> jobs = timerObject.getJobs();
-
             CompletableFuture job = null;
-            if (timerObject.isExclusive()) {
-                if (jobs.size() > 0) {
-                    job = jobs.peek();
-                }
-                if (job != null) {
-                    if (job.isDone()) {
-                        createAsyncJob(timerObject);
-                    } else {
-                        LOG.info("Exclusive job running.. skip timer invokation for " + timerObject.getId());
-                    }
-                } else {
-                    createAsyncJob(timerObject);
-                }
-            } else {
-                createAsyncJob(timerObject);
+            if (timerObject.isExclusive() && jobs.peek() != null) {
+                LOG.info("Exclusive job running.. skip timer invokation for " + timerObject.getId());
+                return;
             }
+            createAsyncJob(timerObject);
         }
 
         private void createAsyncJob(TimerObject timerObject) {
-	        CompletableFuture<Object> job = executor != null ? CompletableFuture.supplyAsync(timerObject.getRunnableMethod(), executor) : CompletableFuture.supplyAsync(timerObject.getRunnableMethod());
-	        timerObject.getJobs().add(job);
-	        final CompletableFuture<Object> finalJob = job;
-	        CompletableFuture<Void> fullJob = job.thenRun(timerObject.getJobCompletionRunnable()).thenRun(() -> {
-		        ConcurrentLinkedQueue<CompletableFuture> jobs = timerObject.getJobs();
-		        jobs.remove(finalJob);
-		        System.out.println("jobs.size() = " + jobs.size());
-	        });
+            CompletableFuture<Object> job = executor != null ? CompletableFuture.supplyAsync(timerObject.getRunnableMethod(), executor) : CompletableFuture.supplyAsync(timerObject.getRunnableMethod());
+            ConcurrentLinkedQueue<CompletableFuture> jobs = timerObject.getJobs();
+            jobs.add(job);
+            System.out.println("jobs: " + jobs.size());
+            job.thenRun(timerObject.getJobCompletionRunnable()).thenRun(() -> {
+                jobs.remove(job);
+            });
         }
     }
 

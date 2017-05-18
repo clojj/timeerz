@@ -1,10 +1,12 @@
 package com.github.utiliteez.timeerz.jee;
 
-import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Supplier;
-import java.util.logging.Logger;
+import com.github.utiliteez.timeerz.core.DelayQueueScheduler;
+import com.github.utiliteez.timeerz.core.TimerObject;
+import com.github.utiliteez.timeerz.core.TimerObjectCron;
+import com.github.utiliteez.timeerz.jee.cdiextension.BeanType;
+import com.github.utiliteez.timeerz.jee.model.JobCompletedEvent;
+import com.github.utiliteez.timeerz.jee.model.ScheduledMethod;
+import com.github.utiliteez.timeerz.jee.model.TimerFiredEvent;
 
 import javax.annotation.Resource;
 import javax.enterprise.concurrent.ManagedExecutorService;
@@ -18,13 +20,11 @@ import javax.enterprise.inject.spi.CDI;
 import javax.inject.Inject;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
-
-import com.github.utiliteez.timeerz.core.DelayQueueScheduler;
-import com.github.utiliteez.timeerz.core.TimerObject;
-import com.github.utiliteez.timeerz.core.TimerObjectCron;
-import com.github.utiliteez.timeerz.jee.cdiextension.BeanType;
-import com.github.utiliteez.timeerz.jee.model.ScheduledMethod;
-import com.github.utiliteez.timeerz.jee.model.TimerFiredEvent;
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Supplier;
+import java.util.logging.Logger;
 
 @ApplicationScoped
 public class TimeerzManager {
@@ -40,6 +40,9 @@ public class TimeerzManager {
 
 	@Inject
 	Event<TimerFiredEvent> timerFiredEvent;
+
+	@Inject
+	Event<JobCompletedEvent> jobCompletedEvent;
 
 	private List<ScheduledMethod> scheduledMethods = new ArrayList<>();
 
@@ -73,12 +76,9 @@ public class TimeerzManager {
 		// queue all timers
 		for (ScheduledMethod scheduledMethod : scheduledMethods) {
 			String timerId = scheduledMethod.getMethod().getJavaMember().getDeclaringClass().getCanonicalName() + "." + scheduledMethod.getMethod().getJavaMember().getName();
-			TimerObjectCron timerObject = new TimerObjectCron(timerId, scheduledMethod.getCron(), null, runnableMethod(scheduledMethod, timerId), scheduledMethod.isExclusive(), () -> {
-				System.out.println("Job completed");
-			});
-			timerObject.setEventConsumer(now -> {
-				timerFiredEvent.fire(new TimerFiredEvent(timerObject, now));
-			});
+			TimerObjectCron timerObject = new TimerObjectCron(timerId, scheduledMethod.getCron(), null, runnableMethod(scheduledMethod, timerId), scheduledMethod.isExclusive(), null);
+			timerObject.setJobCompletionRunnable(() -> jobCompletedEvent.fire(new JobCompletedEvent(timerObject)));
+			timerObject.setEventConsumer(now -> timerFiredEvent.fire(new TimerFiredEvent(timerObject, now)));
 
 			delayQueueScheduler.add(timerObject);
 		}

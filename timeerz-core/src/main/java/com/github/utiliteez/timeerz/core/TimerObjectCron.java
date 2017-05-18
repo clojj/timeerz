@@ -1,5 +1,9 @@
 package com.github.utiliteez.timeerz.core;
 
+import com.cronutils.model.Cron;
+import com.cronutils.model.field.expression.Every;
+import com.cronutils.model.time.ExecutionTime;
+
 import java.time.ZonedDateTime;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -7,10 +11,6 @@ import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-
-import com.cronutils.model.Cron;
-import com.cronutils.model.field.expression.Every;
-import com.cronutils.model.time.ExecutionTime;
 
 public class TimerObjectCron implements TimerObject {
 
@@ -118,7 +118,11 @@ public class TimerObjectCron implements TimerObject {
 		return jobCompletionRunnable;
 	}
 
-	@Override
+    public void setJobCompletionRunnable(Runnable jobCompletionRunnable) {
+        this.jobCompletionRunnable = jobCompletionRunnable;
+    }
+
+    @Override
     public String toString() {
         return "TimerObjectCron{" +
                 "id='" + id + '\'' +
