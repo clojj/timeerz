@@ -12,6 +12,8 @@ import Json.Decode as Decode exposing(..)
 import Json.Encode as Encode exposing(..)
 import Basics
 import Regex
+import List as List
+import Model exposing (..)
 
 import Bootstrap.Grid as Grid
 import Bootstrap.Grid.Col as Col
@@ -19,20 +21,14 @@ import Bootstrap.Grid.Row as Row
 
 main =
   Html.program
-    { init = init
+    { init = initModel
     , view = view
     , update = update
     , subscriptions = subscriptions
     }
 
 
--- MODEL
-
-type alias TimerData =
-  { timerId : String
-  , active : Bool
-  , cronExpression : String
-  }
+-- TYPES
 
 type alias TimerCommands = List TimerCommand
 
@@ -45,29 +41,8 @@ type TimerOp
   = ToggleActivation
   | Reconfigure String
 
-type alias Model =
-  { timerId : String
-  , tableState : Table.State
-  , timeerz : List TimerData
-  , toggled : List String
-  , rsError : Maybe Http.Error
-  , error : String
-  , data : String
-  }
 
-type Msg
-  = InputTimerId String
-  | ToggleSelected String
-  | Send
-  | NewMessage String
-  | UpdateMessage String
-  | SetTableState Table.State
-  | LoadTimeerz (Result Http.Error String)
-
-
-init : (Model, Cmd Msg)
-init =
-  (Model "" (Table.initialSort "Timer-ID") [] [] Nothing "" "waiting for update...", initialCmd)
+-- Json En-/Decoders
 
 timerDataDecoder : Decode.Decoder TimerData
 timerDataDecoder =
@@ -99,13 +74,11 @@ encodeTimerCommand { timerId, timerOp } =
         , ("timerOp", Encode.string (toString timerOp))
         ]
 
+
 validateTimerId : Model -> String -> Bool
 validateTimerId model id =
   (String.length id > 0) &&  List.member id (List.map .timerId model.timeerz)
 
-initialCmd : Cmd Msg
-initialCmd =
-  Http.send LoadTimeerz (Http.getString "http://localhost:8080/timeerz-jee-demo-1.0-SNAPSHOT/rs/timeerz/list")
 
 -- UPDATE
 
@@ -135,20 +108,20 @@ update msg model =
 
     InputTimerId timerId ->
         if validateTimerId model timerId
-        then ({model | timerId = timerId, error = ""}, Cmd.none)
+        then
+          ({model | timerId = timerId, error = ""}, Cmd.none)
         else
           let errMsg = case timerId of
                           "" -> ""
                           _  -> "invalid ID"
           in ({model | timerId = timerId, error = errMsg}, Cmd.none)
 
-    UpdateMessage data ->
-        ({model | data = data}, Cmd.none)
+    UpdateMessage event -> ({model | jobCompletions = event :: model.jobCompletions}, Cmd.none)
 
     NewMessage message ->
         case decodeTimerData message of
             Ok timeer -> ({model | timeerz = timeer :: model.timeerz} , Cmd.none)
-            Err err        -> ({model | error = err}, Cmd.none)
+            Err err   -> ({model | error = err}, Cmd.none)
 
     SetTableState newState ->
       ( {model | tableState = newState}, Cmd.none )
@@ -233,10 +206,16 @@ view model =
           [ br [] []
           , label [] [ text "Job completed from timer:" ]
           , br [] []
-          , text model.data ]
+          , renderList model.jobCompletions ]
           ]
       ]
     ]
+
+-- TODO animation: scroll + fade-in
+renderList lst =
+    lst
+       |> List.map (\l -> li [] [ text l ])
+       |> ul []
 
 config : Table.Config TimerData Msg
 config =
