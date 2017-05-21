@@ -11,7 +11,7 @@ import java.util.function.Supplier;
 public class TimerObjectInterval implements TimerObject {
     private final long interval;
     private TimeUnit timeUnit;
-    private long startTime;
+    private Long startTime;
     private final boolean repeat;
 
     private final Consumer<Long> eventConsumer;
@@ -25,7 +25,6 @@ public class TimerObjectInterval implements TimerObject {
     public TimerObjectInterval(long interval, TimeUnit timeUnit, boolean repeat, Consumer<Long> eventConsumer, Supplier<Object> runnableMethod, final Runnable jobCompletionRunnable) {
         this.interval = interval;
         this.timeUnit = timeUnit;
-        this.startTime = currentTime(timeUnit) + this.interval;
         this.repeat = repeat;
         this.eventConsumer = eventConsumer;
         this.runnableMethod = runnableMethod;
@@ -35,36 +34,53 @@ public class TimerObjectInterval implements TimerObject {
 
     @Override
     public String getId() {
-        return "42";
+        return "TODO";
     }
 
     public void reset() {
-        this.startTime = currentTime(timeUnit) + interval;
+        this.startTime = null;
     }
 
     @Override
     public long getDelay(TimeUnit unit) {
-        long diff = startTime - currentTime(timeUnit);
-        return unit.convert(diff, timeUnit);
+        long delta;
+        initializeStartTime();
+        delta = startTime - currentTime(timeUnit);
+        return unit.convert(delta, timeUnit);
     }
-
+    
+    private void initializeStartTime() {
+        if (this.startTime == null) {
+            this.startTime = currentTime(timeUnit) + this.interval;
+        }
+    }
+    
     @Override
     public int compareTo(Delayed o) {
-        if (this.startTime < ((TimerObjectInterval) o).startTime) {
+        TimerObjectInterval timerObjectInterval = (TimerObjectInterval) o;
+        initializeStartTime();
+        if (this.startTime < timerObjectInterval.startTime) {
             return -1;
         }
-        if (this.startTime > ((TimerObjectInterval) o).startTime) {
+        if (this.startTime > timerObjectInterval.startTime) {
             return 1;
         }
         return 0;
     }
-
-    public Consumer<Long> getEventConsumer() {
+    
+    private Long initializedStartTime() {
+        if (this.startTime == null) {
+            this.startTime = currentTime(timeUnit) + this.interval;
+        }
+        return this.startTime;
+    }
+    
+    public Consumer<Long> getTimerEventConsumer() {
         return eventConsumer;
     }
 
     @Override
-    public Supplier<Object> getRunnableMethod() {
+    public Supplier<Object> getJobMethod() {
         return runnableMethod;
     }
 

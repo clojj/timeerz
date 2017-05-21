@@ -14,8 +14,8 @@ public interface TimerObject extends Delayed {
     boolean isActive();
     boolean toggleActivation();
     
-    Consumer<Long> getEventConsumer();
-    Supplier<Object> getRunnableMethod();
+    Consumer<Long> getTimerEventConsumer();
+    Supplier<Object> getJobMethod();
     Queue<CompletableFuture> getJobs();
     boolean isExclusive();
 	Runnable getJobCompletionRunnable();

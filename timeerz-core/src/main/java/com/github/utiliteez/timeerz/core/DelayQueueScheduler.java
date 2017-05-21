@@ -105,9 +105,9 @@ public class DelayQueueScheduler {
                         
                         // TODO use result (Object) of async job
                         
-                        timerObject.getEventConsumer().accept(System.nanoTime());
+                        timerObject.getTimerEventConsumer().accept(System.nanoTime());
                         
-                        if (timerObject.getRunnableMethod() != null) {
+                        if (timerObject.getJobMethod() != null) {
                             executeJob(timerObject);
                         }
                         
@@ -120,8 +120,8 @@ public class DelayQueueScheduler {
                     }
                 }
             } catch (InterruptedException e) {
-                LOG.log(Level.WARNING, "Timer thread interrupted: ", e);
-                Thread.currentThread().interrupt();
+                // LOG.log(Level.WARNING, "Timer thread interrupted: ", e);
+                // Thread.currentThread().interrupt();
             }
         }
         
@@ -136,7 +136,7 @@ public class DelayQueueScheduler {
         }
         
         private void createAsyncJob(TimerObject timerObject) {
-            CompletableFuture<Object> job = executor != null ? CompletableFuture.supplyAsync(timerObject.getRunnableMethod(), executor) : CompletableFuture.supplyAsync(timerObject.getRunnableMethod());
+            CompletableFuture<Object> job = executor != null ? CompletableFuture.supplyAsync(timerObject.getJobMethod(), executor) : CompletableFuture.supplyAsync(timerObject.getJobMethod());
             Queue<CompletableFuture> jobs = timerObject.getJobs();
             jobs.add(job);
             System.out.println("jobs: " + jobs.size());

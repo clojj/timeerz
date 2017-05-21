@@ -11891,7 +11891,7 @@ var _clojj$timeerz$Main$view = function (model) {
 									},
 									{
 										ctor: '::',
-										_0: _elm_lang$html$Html$text('Disable'),
+										_0: _elm_lang$html$Html$text('Todo..'),
 										_1: {ctor: '[]'}
 									}),
 								_1: {ctor: '[]'}
@@ -12016,7 +12016,7 @@ var _clojj$timeerz$Main$view = function (model) {
 											},
 											{
 												ctor: '::',
-												_0: _elm_lang$html$Html$text('Send'),
+												_0: _elm_lang$html$Html$text('Update'),
 												_1: {ctor: '[]'}
 											}),
 										_1: {ctor: '[]'}

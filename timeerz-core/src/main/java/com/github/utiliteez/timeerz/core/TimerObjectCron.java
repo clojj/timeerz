@@ -42,18 +42,18 @@ public class TimerObjectCron implements TimerObject {
     public String getId() {
         return id;
     }
-
+    
     public void setEventConsumer(Consumer<Long> eventConsumer) {
         this.eventConsumer = eventConsumer;
     }
 
     @Override
-    public Supplier<Object> getRunnableMethod() {
+    public Supplier<Object> getJobMethod() {
         return runnableMethod;
     }
 
     @Override
-    public Consumer<Long> getEventConsumer() {
+    public Consumer<Long> getTimerEventConsumer() {
         return eventConsumer;
     }
 
@@ -64,7 +64,7 @@ public class TimerObjectCron implements TimerObject {
 
     @Override
     public void reset() {
-        this.startTime = ExecutionTime.forCron(cron).nextExecution(ZonedDateTime.now()).toInstant().toEpochMilli();
+        this.startTime = null;
     }
 
     @Override

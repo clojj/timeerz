@@ -1,7 +1,9 @@
 package com.github.utiliteez.timeerz.core;
 
-import java.util.ArrayList;
-import java.util.Collections;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -9,11 +11,8 @@ import java.util.function.IntBinaryOperator;
 import java.util.function.IntFunction;
 import java.util.function.IntUnaryOperator;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class DelayQueueSchedulerIntervalTest {
 
@@ -76,30 +75,15 @@ class DelayQueueSchedulerIntervalTest {
     }
 
     @Test
-    void test_coninciding_ordered() throws InterruptedException {
-        List<Integer> results = new ArrayList<>();
-        delayQueueScheduler.add(new TimerObjectInterval(DELAY_NANOS, TimeUnit.NANOSECONDS, false, createNumberedConsumer(2, results), null, null));
-        delayQueueScheduler.add(new TimerObjectInterval(DELAY_NANOS, TimeUnit.NANOSECONDS, false, createNumberedConsumer(3, results), null, null));
-        delayQueueScheduler.add(new TimerObjectInterval(DELAY_NANOS, TimeUnit.NANOSECONDS, false, createNumberedConsumer(1, results), null, null));
-
-        delayQueueScheduler.debugPrint();
-        Thread.sleep(2000);
-        delayQueueScheduler.debugPrint();
-
-        List<Integer> expected = new ArrayList<>();
-        Collections.addAll(expected, 2, 3, 1);
-        assertEquals(expected, results);
-    }
-
-    @Test
     void test_repeating() throws InterruptedException {
         delayQueueScheduler.add(new TimerObjectInterval(1000, TimeUnit.MILLISECONDS, true, this::consumer, null, null));
+        delayQueueScheduler.add(new TimerObjectInterval(1000, TimeUnit.MILLISECONDS, true, this::consumer, null, null));
         delayQueueScheduler.debugPrint();
-        Thread.sleep(2000);
-        assertEquals(1, consumed);
+        Thread.sleep(1500);
+        assertEquals(2, consumed);
         delayQueueScheduler.debugPrint();
         Thread.sleep(1000);
-        assertEquals(2, consumed);
+        assertEquals(4, consumed);
         delayQueueScheduler.debugPrint();
     }
 
