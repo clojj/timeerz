@@ -116,7 +116,7 @@ update msg model =
                 commands =
                     encodeTimerCommands (List.map createTimerCommandToggled model.toggled)
             in
-            ( { model | timerId = "", toggled = [] }, WebSocket.send "ws://localhost:8080/timeerz-jee-demo-1.0-SNAPSHOT/timeerz" (Encode.encode 1 commands) )
+            ( { model | timerId = "", toggled = [] }, WebSocket.send "ws://localhost:8080/timeerz" (Encode.encode 1 commands) )
 
         LoadTimeerz (Ok responseStr) ->
             case decodeTimerDataList responseStr of
@@ -187,8 +187,8 @@ toggleFilter id timerData =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-        [ WebSocket.listen "ws://localhost:8080/timeerz-jee-demo-1.0-SNAPSHOT/timeerz" NewMessage
-        , WebSocket.listen "ws://localhost:8080/timeerz-jee-demo-1.0-SNAPSHOT/update" UpdateMessage
+        [ WebSocket.listen "ws://localhost:8080/timeerz" NewMessage
+        , WebSocket.listen "ws://localhost:8080/update" UpdateMessage
         ]
 
 

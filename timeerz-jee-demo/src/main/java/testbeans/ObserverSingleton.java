@@ -10,11 +10,11 @@ import javax.enterprise.event.Observes;
 public class ObserverSingleton {
 
     public void observeTimerFiredEvent(@Observes TimerFiredEvent timerFiredEvent) {
-         System.out.println("observed timerFiredEvent = " + timerFiredEvent);
+         // System.out.println("observed timerFiredEvent = " + timerFiredEvent);
     }
 
     public void observeJobCompletedEvent(@Observes JobCompletedEvent jobCompletedEvent) {
-         System.out.println("observed jobCompletedEvent = " + jobCompletedEvent);
+         // System.out.println("observed jobCompletedEvent = " + jobCompletedEvent);
     }
 
 }

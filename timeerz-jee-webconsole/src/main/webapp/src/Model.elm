@@ -34,8 +34,7 @@ type Msg
 
 initialCmd : Cmd Msg
 initialCmd =
-    -- TODO set web-context
-    Http.send LoadTimeerz (Http.getString "http://localhost:8080/timeerz-jee-demo-1.0-SNAPSHOT/rs/timeerz/list")
+    Http.send LoadTimeerz (Http.getString "http://localhost:8080/rs/timeerz/list")
 
 
 initModel : ( Model, Cmd Msg )

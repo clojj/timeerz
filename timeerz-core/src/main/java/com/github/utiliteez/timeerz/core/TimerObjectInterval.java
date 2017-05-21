@@ -1,5 +1,6 @@
 package com.github.utiliteez.timeerz.core;
 
+import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Delayed;
@@ -68,7 +69,7 @@ public class TimerObjectInterval implements TimerObject {
     }
 
     @Override
-    public ConcurrentLinkedQueue<CompletableFuture> getJobs() {
+    public Queue<CompletableFuture> getJobs() {
         return jobs;
     }
 

@@ -5,6 +5,7 @@ import com.cronutils.model.field.expression.Every;
 import com.cronutils.model.time.ExecutionTime;
 
 import java.time.ZonedDateTime;
+import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Delayed;
@@ -15,7 +16,7 @@ import java.util.function.Supplier;
 public class TimerObjectCron implements TimerObject {
 
     private final String id;
-    private long startTime;
+    private Long startTime;
     private Cron cron;
     private final boolean repeat;
 
@@ -27,20 +28,15 @@ public class TimerObjectCron implements TimerObject {
 
 	private boolean active;
 
-	public TimerObjectCron(String id, Cron cron, Consumer<Long> eventConsumer, Supplier<Object> runnableMethod, boolean exclusive, final Runnable jobCompletionRunnable) {
+	public TimerObjectCron(String id, final Cron cron, Consumer<Long> eventConsumer, Supplier<Object> runnableMethod, boolean exclusive, final Runnable jobCompletionRunnable) {
         this.id = id;
         this.cron = cron;
-        this.startTime = ExecutionTime.forCron(cron).nextExecution(ZonedDateTime.now()).toInstant().toEpochMilli();
         this.repeat = cron.retrieveFieldsAsMap().values().stream().anyMatch(cronField -> cronField.getExpression() instanceof Every);
         this.eventConsumer = eventConsumer;
         this.runnableMethod = runnableMethod;
         this.exclusive = exclusive;
 		this.jobCompletionRunnable = jobCompletionRunnable;
 		this.active = true;
-    }
-
-    public TimerObjectCron(String id, Cron cron) {
-        this(id, cron, null, null, false, null);
     }
 
     public String getId() {
@@ -62,7 +58,7 @@ public class TimerObjectCron implements TimerObject {
     }
 
     @Override
-    public ConcurrentLinkedQueue<CompletableFuture> getJobs() {
+    public Queue<CompletableFuture> getJobs() {
         return jobs;
     }
 
@@ -73,17 +69,22 @@ public class TimerObjectCron implements TimerObject {
 
     @Override
     public long getDelay(TimeUnit unit) {
-        long delta = startTime - System.currentTimeMillis();
+        long delta;
+        initializeStartTime();
+        delta = startTime - System.currentTimeMillis();
         return unit.convert(delta, TimeUnit.MILLISECONDS);
     }
-
+    
+    private void initializeStartTime() {
+        if (this.startTime == null) {
+            this.startTime = ExecutionTime.forCron(cron).nextExecution(ZonedDateTime.now()).toInstant().toEpochMilli();
+        }
+    }
+    
     @Override
     public int compareTo(Delayed o) {
         TimerObjectCron timerObjectCron = (TimerObjectCron) o;
-        return compareStartTime(timerObjectCron);
-    }
-
-    private int compareStartTime(TimerObjectCron timerObjectCron) {
+        initializeStartTime();
         if (this.startTime < timerObjectCron.startTime) {
             return -1;
         }
@@ -92,7 +93,7 @@ public class TimerObjectCron implements TimerObject {
         }
         return 0;
     }
-
+    
     @Override
     public boolean isRepeat() {
         return repeat;
