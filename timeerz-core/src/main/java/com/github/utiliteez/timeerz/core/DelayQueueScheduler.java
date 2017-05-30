@@ -1,12 +1,20 @@
 package com.github.utiliteez.timeerz.core;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.DelayQueue;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ThreadFactory;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import com.cronutils.model.Cron;
 
 public class DelayQueueScheduler {
     
@@ -18,17 +26,16 @@ public class DelayQueueScheduler {
     
     private Thread thread;
     
-    // TODO
     private Executor executor;
     
-    public DelayQueueScheduler() {
+    DelayQueueScheduler() {
     }
     
     public DelayQueueScheduler(Executor executor) {
         this.executor = executor;
     }
     
-    public void startWithNewThread() {
+    void startWithNewThread() {
         DelayQueueTaker delayQueueTaker = new DelayQueueTaker(delayQueue, executor);
         thread = new Thread(delayQueueTaker, "DelayQueueScheduler Default Daemon-Thread");
         thread.setPriority(Thread.MIN_PRIORITY);
@@ -60,7 +67,7 @@ public class DelayQueueScheduler {
         thread.interrupt();
     }
     
-    public void debugPrint() {
+    void debugPrint() {
         debugPrint("timers:");
     }
     
@@ -71,16 +78,27 @@ public class DelayQueueScheduler {
         }
     }
     
-    public boolean toggleActivation(final TimerObject toDeactivate) {
+    boolean toggleActivation(final TimerObject toDeactivate) {
         return delayQueue.remove(toDeactivate);
     }
     
+    public boolean reconfigure(final String timerId, final Cron cron) {
+	    TimerObject timerObject = timers.get(timerId);
+	    boolean removed = delayQueue.remove(timerObject);
+	    if (removed) {
+		    // TODO
+
+		    return true;
+	    }
+	    return false;
+    }
+
     public boolean toggleActivation(final String timerId) {
         TimerObject timerObject = timers.get(timerId);
         boolean activation = timerObject.toggleActivation();
         return activation ? delayQueue.add(timerObject) : delayQueue.remove(timerObject);
     }
-    
+
     public int size() {
         return delayQueue.size();
     }
@@ -100,7 +118,7 @@ public class DelayQueueScheduler {
             try {
                 while (!Thread.interrupted()) {
                     TimerObject timerObject = delayQueue.take();
-                    
+
                     if (timerObject.isActive()) {
                         
                         // TODO use result (Object) of async job
