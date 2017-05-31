@@ -82,15 +82,17 @@ public class DelayQueueScheduler {
         return delayQueue.remove(toDeactivate);
     }
     
-    public boolean reconfigure(final String timerId, final Cron cron) {
+    public void reconfigure(final String timerId, final Cron cron) {
 	    TimerObject timerObject = timers.get(timerId);
-	    boolean removed = delayQueue.remove(timerObject);
-	    if (removed) {
-		    // TODO
-
-		    return true;
+	    if (timerObject == null) {
+		    throw new IllegalArgumentException("Invalid timer-id " + timerId);
 	    }
-	    return false;
+	    timerObject.changeCron(cron);
+	    boolean removed = delayQueue.remove(timerObject);
+	    if (removed && timerObject.isActive()) {
+	    	timerObject.reset();
+		    delayQueue.add(timerObject);
+	    }
     }
 
     public boolean toggleActivation(final String timerId) {

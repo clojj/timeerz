@@ -8,6 +8,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import com.cronutils.model.Cron;
+
 public class TimerObjectInterval implements TimerObject {
     private final long interval;
     private TimeUnit timeUnit;
@@ -107,6 +109,11 @@ public class TimerObjectInterval implements TimerObject {
 	public synchronized boolean toggleActivation() {
         this.active = !this.active;
         return this.active;
+	}
+
+	@Override
+	public void changeCron(final Cron cron) {
+		// TODO
 	}
 
 	@Override

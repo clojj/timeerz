@@ -1,9 +1,5 @@
 package com.github.utiliteez.timeerz.core;
 
-import com.cronutils.model.Cron;
-import com.cronutils.model.field.expression.Every;
-import com.cronutils.model.time.ExecutionTime;
-
 import java.time.ZonedDateTime;
 import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
@@ -13,12 +9,17 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import com.cronutils.model.Cron;
+import com.cronutils.model.field.expression.Every;
+import com.cronutils.model.time.ExecutionTime;
+
 public class TimerObjectCron implements TimerObject {
 
     private final String id;
-    private Long startTime;
-    private Cron cron;
-    private final boolean repeat;
+	private Cron cron;
+
+	private Long startTime;
+    private boolean repeat;
 
     private Consumer<Long> eventConsumer;
     private Supplier<Object> runnableMethod;
@@ -31,7 +32,6 @@ public class TimerObjectCron implements TimerObject {
 	public TimerObjectCron(String id, final Cron cron, Consumer<Long> eventConsumer, Supplier<Object> runnableMethod, boolean exclusive, final Runnable jobCompletionRunnable) {
         this.id = id;
         this.cron = cron;
-        this.repeat = cron.retrieveFieldsAsMap().values().stream().anyMatch(cronField -> cronField.getExpression() instanceof Every);
         this.eventConsumer = eventConsumer;
         this.runnableMethod = runnableMethod;
         this.exclusive = exclusive;
@@ -77,7 +77,10 @@ public class TimerObjectCron implements TimerObject {
     
     private void initializeStartTime() {
         if (this.startTime == null) {
-            this.startTime = ExecutionTime.forCron(cron).nextExecution(ZonedDateTime.now()).toInstant().toEpochMilli();
+        	synchronized (this) {
+		        this.startTime = ExecutionTime.forCron(cron).nextExecution(ZonedDateTime.now()).toInstant().toEpochMilli();
+		        this.repeat = cron.retrieveFieldsAsMap().values().stream().anyMatch(cronField -> cronField.getExpression() instanceof Every);
+	        }
         }
     }
     
@@ -112,6 +115,11 @@ public class TimerObjectCron implements TimerObject {
 	public synchronized boolean toggleActivation() {
 		this.active = !this.active;
 		return this.active;
+	}
+
+	@Override
+	public synchronized void changeCron(final Cron cron) {
+		this.cron = cron;
 	}
 
 	@Override
